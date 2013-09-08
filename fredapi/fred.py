@@ -1,7 +1,13 @@
 import os
 import sys
+if sys.version_info[0] >= 3:
+    from urllib.request import urlopen
+    from urllib.parse import quote_plus
+else:
+    from urllib2 import urlopen
+    from urllib import quote_plus
+
 import xml.etree.ElementTree as ET
-import urllib2
 from dateutil.parser import parse
 import pandas as pd
 
@@ -31,7 +37,7 @@ class Fred(object):
                              "on the Fred website at http://research.stlouisfed.org/fred2/")
 
     def __fetch_data(self, url):
-        response = urllib2.urlopen(url)
+        response = urlopen(url)
         root = ET.fromstring(response.read())
         return root
 
@@ -102,7 +108,7 @@ class Fred(object):
 
     def search(self, text, fulltext_search=True, limit=100):
         import urllib
-        url = "http://api.stlouisfed.org/fred/series/search?search_text=%s&api_key=%s" % (urllib.quote_plus(text), self.api_key)
+        url = "http://api.stlouisfed.org/fred/series/search?search_text=%s&api_key=%s" % (quote_plus(text), self.api_key)
         root = self.__fetch_data(url)
 
         series_ids = []
