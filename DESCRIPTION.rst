@@ -120,6 +120,13 @@ provides a ``search()`` method that does a fulltext search and returns a
 
     fred.search('potential gdp')
 
+You can also search by release id and category id with various options
+
+.. code:: python
+
+    df1 = fred.search_by_release(11)
+    df2 = fred.search_by_category(101, limit=10, order_by='popularity', sort_order='desc')
+
 Dependencies
 ------------
 
