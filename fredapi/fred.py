@@ -53,8 +53,9 @@ class Fred(object):
         try:
             response = urlopen(url)
             root = ET.fromstring(response.read())
-        except HTTPError:
-            root = None
+        except HTTPError, exc:
+            root = ET.fromstring(exc.read())
+            raise ValueError(root.get('message'))
         return root
 
     def get_series_info(self, series_id):
