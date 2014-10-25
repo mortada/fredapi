@@ -3,11 +3,13 @@ import sys
 if sys.version_info[0] >= 3:
     from urllib.request import urlopen
     from urllib.parse import quote_plus
+    from urllib.parse import urlencode
     from urllib.error import HTTPError
 else:
     from urllib2 import urlopen
     from urllib2 import HTTPError
     from urllib import quote_plus
+    from urllib import urlencode
 
 import xml.etree.ElementTree as ET
 from dateutil.parser import parse
@@ -19,7 +21,6 @@ class Fred(object):
     latest_realtime_end = '9999-12-31'
     nan_char = '.'
     max_results_per_request = 1000
-
     def __init__(self,
                  api_key=None,
                  api_key_file=None):
@@ -77,7 +78,7 @@ class Fred(object):
         info = pd.Series(root.getchildren()[0].attrib)
         return info
 
-    def get_series(self, series_id):
+    def get_series(self, series_id, **kwargs):
         """
         Get data for a Fred series id. This fetches the latest known data, and is equivalent to get_series_latest_release()
 
@@ -85,6 +86,7 @@ class Fred(object):
         ----------
         series_id : str
             Fred series id such as 'CPIAUCSL'
+        Please see http://api.stlouisfed.org/docs/fred/series_observations.html for detail.
 
         Returns
         -------
@@ -92,6 +94,8 @@ class Fred(object):
             a Series where each index is the observation date and the value is the data for the Fred series
         """
         url = "http://api.stlouisfed.org/fred/series/observations?series_id=%s&api_key=%s" % (series_id, self.api_key)
+        if kwargs is not None:
+            url += '&' + urlencode(kwargs)
         root = self.__fetch_data(url)
         if root is None:
             raise ValueError('No data exists for series id: ' + series_id)
