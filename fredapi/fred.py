@@ -79,7 +79,7 @@ class Fred(object):
         info = pd.Series(root.getchildren()[0].attrib)
         return info
 
-    def get_series(self, series_id, **kwargs):
+    def get_series(self, series_id, observation_start=None, observation_end=None, **kwargs):
         """
         Get data for a Fred series id. This fetches the latest known data, and is equivalent to get_series_latest_release()
 
@@ -87,16 +87,30 @@ class Fred(object):
         ----------
         series_id : str
             Fred series id such as 'CPIAUCSL'
-        Please see http://api.stlouisfed.org/docs/fred/series_observations.html for detail.
+        observation_start : datetime or datetime-like str such as '7/1/2014', optional
+            earliest observation date
+        observation_end : datetime or datetime-like str such as '7/1/2014', optional
+            latest observation date
+        kwargs : additional parameters
+            Any additional parameters supported by FRED. You can see http://api.stlouisfed.org/docs/fred/series_observations.html for the full list
 
         Returns
         -------
-        info : Series
+        data : Series
             a Series where each index is the observation date and the value is the data for the Fred series
         """
         url = "http://api.stlouisfed.org/fred/series/observations?series_id=%s&api_key=%s" % (series_id, self.api_key)
+
+        if observation_start is not None:
+            observation_start = pd.to_datetime(observation_start, errors='raise')
+            url += '&observation_start=' + observation_start.strftime('%Y-%m-%d')
+        if observation_end is not None:
+            observation_end = pd.to_datetime(observation_end, errors='raise')
+            url += '&observation_end=' + observation_end.strftime('%Y-%m-%d')
+
         if kwargs is not None:
             url += '&' + urlencode(kwargs)
+
         root = self.__fetch_data(url)
         if root is None:
             raise ValueError('No data exists for series id: ' + series_id)
