@@ -133,3 +133,7 @@ Dependencies
 -  `pandas <http://pandas.pydata.org/>`__
 -  `python-dateutil <http://labix.org/python-dateutil>`__
 
+More Examples
+-------------
+
+- I have a `blog post with more examples <http://mortada.net/python-api-for-fred.html>`__ written in an `IPython` notebook
