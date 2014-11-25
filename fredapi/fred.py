@@ -53,7 +53,7 @@ class Fred(object):
         try:
             response = urlopen(url)
             root = ET.fromstring(response.read())
-        except HTTPError, exc:
+        except HTTPError as exc:
             root = ET.fromstring(exc.read())
             raise ValueError(root.get('message'))
         return root
