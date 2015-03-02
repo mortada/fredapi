@@ -330,7 +330,6 @@ this outputs:
 
 ## Dependencies
 - [pandas](http://pandas.pydata.org/)
-- [python-dateutil](http://labix.org/python-dateutil)
 
 ## More Examples
 - I have a [blog post with more examples](http://mortada.net/python-api-for-fred.html) written in an `IPython` notebook

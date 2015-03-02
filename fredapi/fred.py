@@ -12,7 +12,6 @@ else:
     from urllib import urlencode
 
 import xml.etree.ElementTree as ET
-from dateutil.parser import parse
 import pandas as pd
 
 
@@ -57,6 +56,12 @@ class Fred(object):
             root = ET.fromstring(exc.read())
             raise ValueError(root.get('message'))
         return root
+
+    def _parse(self, date_str, format='%Y-%m-%d'):
+        """
+        helper function for parsing FRED date string into datetime
+        """
+        return pd.to_datetime(date_str, format=format).to_datetime()
 
     def get_series_info(self, series_id):
         """
@@ -121,7 +126,7 @@ class Fred(object):
                 val = float('NaN')
             else:
                 val = float(val)
-            data[parse(child.get('date'))] = val
+            data[self._parse(child.get('date'))] = val
         return pd.Series(data)
 
     def get_series_latest_release(self, series_id):
@@ -218,9 +223,9 @@ class Fred(object):
                 val = float('NaN')
             else:
                 val = float(val)
-            realtime_start = parse(child.get('realtime_start'))
-            # realtime_end = parse(child.get('realtime_end'))
-            date = parse(child.get('date'))
+            realtime_start = self._parse(child.get('realtime_start'))
+            # realtime_end = self._parse(child.get('realtime_end'))
+            date = self._parse(child.get('date'))
 
             data[i] = {'realtime_start': realtime_start,
                        # 'realtime_end': realtime_end,
@@ -251,7 +256,7 @@ class Fred(object):
             raise ValueError('No vintage date exists for series id: ' + series_id)
         dates = []
         for child in root.getchildren():
-            dates.append(parse(child.text))
+            dates.append(self._parse(child.text))
         return dates
 
     def __do_series_search(self, url):
@@ -280,7 +285,7 @@ class Fred(object):
             data = pd.DataFrame(data, columns=series_ids).T
             # parse datetime columns
             for field in ["realtime_start", "realtime_end", "observation_start", "observation_end", "last_updated"]:
-                data[field] = data[field].apply(parse)
+                data[field] = data[field].apply(self._parse, format=None)
             # set index name
             data.index.name = 'series id'
         else:

@@ -2,8 +2,7 @@
 from setuptools import setup
 from fredapi import __version__
 
-# requires = ['pandas >= 0.13', 'python-dateutil']
-requires = ['pandas', 'python-dateutil']
+requires = ['pandas']
 
 # README = open('README.rst').read()
 # CHANGELOG = open('docs/changelog.rst').read()

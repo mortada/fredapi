@@ -131,7 +131,6 @@ Dependencies
 ------------
 
 -  `pandas <http://pandas.pydata.org/>`__
--  `python-dateutil <http://labix.org/python-dateutil>`__
 
 More Examples
 -------------
