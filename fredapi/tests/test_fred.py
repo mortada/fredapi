@@ -1,6 +1,7 @@
 
 import unittest
 from fredapi import Fred
+from datetime import datetime
 
 
 class TestFred(unittest.TestCase):
@@ -26,6 +27,13 @@ class TestFred(unittest.TestCase):
             self.assertTrue(False, 'previous line should have thrown a ValueError')
         except ValueError:
             pass
+
+    def testSearch(self):
+        personal_income_series = self.fred.search_by_release(175, limit=5, order_by='popularity', sort_order='desc')
+        series_ids = ['PCPI08081', 'PCPI22071', 'PCPI42101', 'PCPI06083', 'PCPI06075']
+        for series_id in series_ids:
+            self.assertTrue(series_id in personal_income_series.index)
+            self.assertEqual(personal_income_series.ix[series_id, 'observation_start'], datetime(1969, 1, 1))
 
     def tearDown(self):
         return
