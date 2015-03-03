@@ -19,6 +19,7 @@ setup(
     packages=['fredapi'],
     platforms=["Any"],
     install_requires=requires,
+    setup_requires=requires,
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',
