@@ -12,7 +12,6 @@ else:
     from urllib import urlencode
 
 import xml.etree.ElementTree as ET
-import pandas as pd
 
 
 class Fred(object):
@@ -20,6 +19,7 @@ class Fred(object):
     latest_realtime_end = '9999-12-31'
     nan_char = '.'
     max_results_per_request = 1000
+
     def __init__(self,
                  api_key=None,
                  api_key_file=None):
@@ -61,7 +61,8 @@ class Fred(object):
         """
         helper function for parsing FRED date string into datetime
         """
-        return pd.to_datetime(date_str, format=format).to_datetime()
+        from pandas import to_datetime
+        return to_datetime(date_str, format=format).to_datetime()
 
     def get_series_info(self, series_id):
         """
@@ -81,7 +82,8 @@ class Fred(object):
         root = self.__fetch_data(url)
         if root is None:
             raise ValueError('No info exists for series id: ' + series_id)
-        info = pd.Series(root.getchildren()[0].attrib)
+        from pandas import Series
+        info = Series(root.getchildren()[0].attrib)
         return info
 
     def get_series(self, series_id, observation_start=None, observation_end=None, **kwargs):
@@ -105,12 +107,13 @@ class Fred(object):
             a Series where each index is the observation date and the value is the data for the Fred series
         """
         url = "http://api.stlouisfed.org/fred/series/observations?series_id=%s&api_key=%s" % (series_id, self.api_key)
+        from pandas import to_datetime, Series
 
         if observation_start is not None:
-            observation_start = pd.to_datetime(observation_start, errors='raise')
+            observation_start = to_datetime(observation_start, errors='raise')
             url += '&observation_start=' + observation_start.strftime('%Y-%m-%d')
         if observation_end is not None:
-            observation_end = pd.to_datetime(observation_end, errors='raise')
+            observation_end = to_datetime(observation_end, errors='raise')
             url += '&observation_end=' + observation_end.strftime('%Y-%m-%d')
 
         if kwargs is not None:
@@ -127,7 +130,7 @@ class Fred(object):
             else:
                 val = float(val)
             data[self._parse(child.get('date'))] = val
-        return pd.Series(data)
+        return Series(data)
 
     def get_series_latest_release(self, series_id):
         """
@@ -183,7 +186,8 @@ class Fred(object):
         data : Series
             a Series where each index is the observation date and the value is the data for the Fred series
         """
-        as_of_date = pd.to_datetime(as_of_date)
+        from pandas import to_datetime
+        as_of_date = to_datetime(as_of_date)
         df = self.get_series_all_releases(series_id)
         data = df[df['realtime_start'] <= as_of_date]
         return data
@@ -232,7 +236,8 @@ class Fred(object):
                        'date': date,
                        'value': val}
             i += 1
-        data = pd.DataFrame(data).T
+        from pandas import DataFrame
+        data = DataFrame(data).T
         return data
 
     def get_series_vintage_dates(self, series_id):
@@ -282,7 +287,8 @@ class Fred(object):
                 data[series_id][field] = child.get(field)
 
         if num_results_returned > 0:
-            data = pd.DataFrame(data, columns=series_ids).T
+            from pandas import DataFrame
+            data = DataFrame(data, columns=series_ids).T
             # parse datetime columns
             for field in ["realtime_start", "realtime_end", "observation_start", "observation_end", "last_updated"]:
                 data[field] = data[field].apply(self._parse, format=None)

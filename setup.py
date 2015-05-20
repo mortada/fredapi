@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from setuptools import setup
-from fredapi import __version__
+from fredapi.version import version as __version__
 
 requires = ['pandas']
 
@@ -19,7 +19,6 @@ setup(
     packages=['fredapi'],
     platforms=["Any"],
     install_requires=requires,
-    setup_requires=requires,
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',
