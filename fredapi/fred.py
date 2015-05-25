@@ -62,7 +62,10 @@ class Fred(object):
         helper function for parsing FRED date string into datetime
         """
         from pandas import to_datetime
-        return to_datetime(date_str, format=format).to_datetime()
+        rv = to_datetime(date_str, format=format)
+        if hasattr(rv, 'to_datetime'):
+            rv = rv.to_datetime()
+        return rv
 
     def get_series_info(self, series_id):
         """
