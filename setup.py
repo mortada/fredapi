@@ -16,6 +16,7 @@ setup(
     # author_email='',
     description="Python API for Federal Reserve Economic Data (FRED) from St. Louis Fed",
     long_description=LONG_DESCRIPTION,
+    test_suite='fredapi.tests.test_fred',
     packages=['fredapi'],
     platforms=["Any"],
     install_requires=requires,
