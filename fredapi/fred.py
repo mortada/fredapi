@@ -38,12 +38,16 @@ class Fred(object):
             f.close()
         else:
             self.api_key = os.environ.get('FRED_API_KEY')
+        self.root_url = 'https://api.stlouisfed.org/fred'
 
         if self.api_key is None:
-            raise ValueError("You need to set a valid API key. You can set it in 3 ways: pass the string with api_key, "
-                             "or set api_key_file to a file with the api key in the first line, or set the environment "
-                             "variable 'FRED_API_KEY' to the value of your api key. You can sign up for a free api key "
-                             "on the Fred website at http://research.stlouisfed.org/fred2/")
+            raise ValueError(textwrap.dedent("""\
+                    You need to set a valid API key. You can set it in 3 ways:
+                    pass the string with api_key, or set api_key_file to a
+                    file with the api key in the first line, or set the
+                    environment variable 'FRED_API_KEY' to the value of your
+                    api key. You can sign up for a free api key on the Fred
+                    website at http://research.stlouisfed.org/fred2/"""))
 
     def __fetch_data(self, url):
         """
@@ -81,7 +85,8 @@ class Fred(object):
         info : Series
             a pandas Series containing information about the Fred series
         """
-        url = "http://api.stlouisfed.org/fred/series?series_id=%s&api_key=%s" % (series_id, self.api_key)
+        url = "%s/series?series_id=%s&api_key=%s" % (self.root_url, series_id,
+                                                     self.api_key)
         root = self.__fetch_data(url)
         if root is None:
             raise ValueError('No info exists for series id: ' + series_id)
@@ -102,14 +107,16 @@ class Fred(object):
         observation_end : datetime or datetime-like str such as '7/1/2014', optional
             latest observation date
         kwargs : additional parameters
-            Any additional parameters supported by FRED. You can see http://api.stlouisfed.org/docs/fred/series_observations.html for the full list
+            Any additional parameters supported by FRED. You can see https://api.stlouisfed.org/docs/fred/series_observations.html for the full list
 
         Returns
         -------
         data : Series
             a Series where each index is the observation date and the value is the data for the Fred series
         """
-        url = "http://api.stlouisfed.org/fred/series/observations?series_id=%s&api_key=%s" % (series_id, self.api_key)
+        url = "%s/series/observations?series_id=%s&api_key=%s" % (self.root_url,
+                                                                  series_id,
+                                                                  self.api_key)
         from pandas import to_datetime, Series
 
         if observation_start is not None:
@@ -215,10 +222,11 @@ class Fred(object):
             a DataFrame with columns 'date', 'realtime_start' and 'value' where 'date' is the observation period and 'realtime_start'
             is when the corresponding value (either first release or revision) is reported.
         """
-        url = "http://api.stlouisfed.org/fred/series/observations?series_id=%s&api_key=%s&realtime_start=%s&realtime_end=%s" % (series_id,
-                                                                                                                                self.api_key,
-                                                                                                                                self.earliest_realtime_start,
-                                                                                                                                self.latest_realtime_end)
+        url = "%s/series/observations?series_id=%s&api_key=%s&realtime_start=%s&realtime_end=%s" % (self.root_url,
+                                                                                                    series_id,
+                                                                                                    self.api_key,
+                                                                                                    self.earliest_realtime_start,
+                                                                                                    self.latest_realtime_end)
         root = self.__fetch_data(url)
         if root is None:
             raise ValueError('No data exists for series id: ' + series_id)
@@ -258,7 +266,9 @@ class Fred(object):
         dates : list
             list of vintage dates
         """
-        url = "http://api.stlouisfed.org/fred/series/vintagedates?series_id=%s&api_key=%s" % (series_id, self.api_key)
+        url = "%s/series/vintagedates?series_id=%s&api_key=%s" % (self.root_url,
+                                                                  series_id,
+                                                                  self.api_key)
         root = self.__fetch_data(url)
         if root is None:
             raise ValueError('No vintage date exists for series id: ' + series_id)
@@ -361,7 +371,9 @@ class Fred(object):
         info : DataFrame
             a DataFrame containing information about the matching Fred series
         """
-        url = "http://api.stlouisfed.org/fred/series/search?search_text=%s&api_key=%s" % (quote_plus(text), self.api_key)
+        url = "%s/series/search?search_text=%s&api_key=%s" % (self.root_url,
+                                                              quote_plus(text),
+                                                              self.api_key)
         info = self.__get_search_results(url, limit, order_by, sort_order)
         return info
 
@@ -387,7 +399,9 @@ class Fred(object):
         info : DataFrame
             a DataFrame containing information about the matching Fred series
         """
-        url = "http://api.stlouisfed.org/fred/release/series?release_id=%d&&api_key=%s" % (release_id, self.api_key)
+        url = "%s/release/series?release_id=%d&&api_key=%s" % (self.root_url,
+                                                               release_id,
+                                                               self.api_key)
         info = self.__get_search_results(url, limit, order_by, sort_order)
         if info is None:
             raise ValueError('No series exists for release id: ' + str(release_id))
@@ -415,7 +429,9 @@ class Fred(object):
         info : DataFrame
             a DataFrame containing information about the matching Fred series
         """
-        url = "http://api.stlouisfed.org/fred/category/series?category_id=%d&api_key=%s" % (category_id, self.api_key)
+        url = "%s/category/series?category_id=%d&api_key=%s" % (self.root_url,
+                                                                category_id,
+                                                                self.api_key)
         info = self.__get_search_results(url, limit, order_by, sort_order)
         if info is None:
             raise ValueError('No series exists for category id: ' + str(category_id))
