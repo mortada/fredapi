@@ -41,6 +41,7 @@ class Fred(object):
         self.root_url = 'https://api.stlouisfed.org/fred'
 
         if self.api_key is None:
+            import textwrap
             raise ValueError(textwrap.dedent("""\
                     You need to set a valid API key. You can set it in 3 ways:
                     pass the string with api_key, or set api_key_file to a
