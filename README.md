@@ -50,6 +50,18 @@ For instance, there has been three observations (data points) for the GDP of 201
 
 This means the GDP value for Q1 2014 has been released three times. First release was on 4/30/2014 for a value of 17149.6, and then there have been two revisions on 5/29/2014 and 6/25/2014 for revised values of 17101.3 and 17016.0, respectively.
 
+If you pass realtime_start and/or realtime_end to `get_series`, you will get a pandas.DataFrame with a pandas.MultiIndex instead of a pandas.Series.
+
+For instance, with observation_start and observation_end set to 2015-01-01 and
+realtime_start set to 2015-01-01, one will get:
+```
+                                           GDP
+obs_date   rt_start   rt_end
+2015-01-01 2015-04-29 2015-05-28 00:00:00  17710.0
+           2015-05-29 2015-06-23 00:00:00  17665.0
+           2015-06-24 9999-12-31           17693.3
+```
+
 ### Get first data release only (i.e. ignore revisions)
 
 ```python
@@ -83,6 +95,7 @@ this outputs:
 2014-04-01    17294.7
 dtype: float64
 ```
+
 ### Get latest data known on a given date
 
 ```python
