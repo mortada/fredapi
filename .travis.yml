@@ -1,0 +1,21 @@
+language: python
+
+python:
+    - "2.7"
+    - "3.3"
+    - "3.4"
+
+install:
+    - pip install -r requirements.txt coverage python-coveralls
+    - python setup.py --quiet install
+
+script:
+    - python fredapi/tests/test_fred.py -v
+    # For some reason, running the tests like this does not work for
+    # python 2.7 and 3.4:
+    # - python -m unittest fredapi/tests/test_fred.py -v
+    # - python setup.py test
+
+after_success:
+    - coverage run --source massedit tests.py
+    - coveralls

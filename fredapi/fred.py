@@ -1,17 +1,24 @@
+#!/usr/bin/env python
+# encoding: utf-8
+
 import os
 import sys
-if sys.version_info[0] >= 3:
-    from urllib.request import urlopen
-    from urllib.parse import quote_plus
-    from urllib.parse import urlencode
-    from urllib.error import HTTPError
-else:
-    from urllib2 import urlopen
-    from urllib2 import HTTPError
-    from urllib import quote_plus
-    from urllib import urlencode
-
 import xml.etree.ElementTree as ET
+if sys.version_info[0] >= 3:
+    import urllib.request as url_request
+    import urllib.parse as url_parse
+    import urllib.error as url_error
+else:
+    import urllib2 as url_request
+    import urllib as url_parse
+    import urllib2 as url_error
+
+import pandas as pd
+
+urlopen = url_request.urlopen
+quote_plus = url_parse.quote_plus
+urlencode = url_parse.urlencode
+HTTPError = url_error.HTTPError
 
 
 class Fred(object):
@@ -19,6 +26,7 @@ class Fred(object):
     latest_realtime_end = '9999-12-31'
     nan_char = '.'
     max_results_per_request = 1000
+    root_url = 'https://api.stlouisfed.org/fred'
 
     def __init__(self,
                  api_key=None,
@@ -38,7 +46,6 @@ class Fred(object):
             f.close()
         else:
             self.api_key = os.environ.get('FRED_API_KEY')
-        self.root_url = 'https://api.stlouisfed.org/fred'
 
         if self.api_key is None:
             import textwrap
@@ -54,6 +61,7 @@ class Fred(object):
         """
         helper function for fetching data given a request URL
         """
+        url += '&api_key=' + self.api_key
         try:
             response = urlopen(url)
             root = ET.fromstring(response.read())
@@ -66,8 +74,7 @@ class Fred(object):
         """
         helper function for parsing FRED date string into datetime
         """
-        from pandas import to_datetime
-        rv = to_datetime(date_str, format=format)
+        rv = pd.to_datetime(date_str, format=format)
         if hasattr(rv, 'to_datetime'):
             rv = rv.to_datetime()
         return rv
@@ -86,13 +93,11 @@ class Fred(object):
         info : Series
             a pandas Series containing information about the Fred series
         """
-        url = "%s/series?series_id=%s&api_key=%s" % (self.root_url, series_id,
-                                                     self.api_key)
+        url = "%s/series?series_id=%s" % (self.root_url, series_id)
         root = self.__fetch_data(url)
-        if root is None:
+        if root is None or not len(root):
             raise ValueError('No info exists for series id: ' + series_id)
-        from pandas import Series
-        info = Series(root.getchildren()[0].attrib)
+        info = pd.Series(root.getchildren()[0].attrib)
         return info
 
     def get_series(self, series_id, observation_start=None, observation_end=None, **kwargs):
@@ -115,21 +120,16 @@ class Fred(object):
         data : Series
             a Series where each index is the observation date and the value is the data for the Fred series
         """
-        url = "%s/series/observations?series_id=%s&api_key=%s" % (self.root_url,
-                                                                  series_id,
-                                                                  self.api_key)
-        from pandas import to_datetime, Series
-
+        url = "%s/series/observations?series_id=%s" % (self.root_url, series_id)
         if observation_start is not None:
-            observation_start = to_datetime(observation_start, errors='raise')
+            observation_start = pd.to_datetime(observation_start,
+                                               errors='raise')
             url += '&observation_start=' + observation_start.strftime('%Y-%m-%d')
         if observation_end is not None:
-            observation_end = to_datetime(observation_end, errors='raise')
+            observation_end = pd.to_datetime(observation_end, errors='raise')
             url += '&observation_end=' + observation_end.strftime('%Y-%m-%d')
-
-        if kwargs is not None:
+        if kwargs.keys():
             url += '&' + urlencode(kwargs)
-
         root = self.__fetch_data(url)
         if root is None:
             raise ValueError('No data exists for series id: ' + series_id)
@@ -141,7 +141,7 @@ class Fred(object):
             else:
                 val = float(val)
             data[self._parse(child.get('date'))] = val
-        return Series(data)
+        return pd.Series(data)
 
     def get_series_latest_release(self, series_id):
         """
@@ -197,8 +197,7 @@ class Fred(object):
         data : Series
             a Series where each index is the observation date and the value is the data for the Fred series
         """
-        from pandas import to_datetime
-        as_of_date = to_datetime(as_of_date)
+        as_of_date = pd.to_datetime(as_of_date)
         df = self.get_series_all_releases(series_id)
         data = df[df['realtime_start'] <= as_of_date]
         return data
@@ -223,11 +222,10 @@ class Fred(object):
             a DataFrame with columns 'date', 'realtime_start' and 'value' where 'date' is the observation period and 'realtime_start'
             is when the corresponding value (either first release or revision) is reported.
         """
-        url = "%s/series/observations?series_id=%s&api_key=%s&realtime_start=%s&realtime_end=%s" % (self.root_url,
-                                                                                                    series_id,
-                                                                                                    self.api_key,
-                                                                                                    self.earliest_realtime_start,
-                                                                                                    self.latest_realtime_end)
+        url = "%s/series/observations?series_id=%s&realtime_start=%s&realtime_end=%s" % (self.root_url,
+                                                                                         series_id,
+                                                                                         self.earliest_realtime_start,
+                                                                                         self.latest_realtime_end)
         root = self.__fetch_data(url)
         if root is None:
             raise ValueError('No data exists for series id: ' + series_id)
@@ -267,9 +265,7 @@ class Fred(object):
         dates : list
             list of vintage dates
         """
-        url = "%s/series/vintagedates?series_id=%s&api_key=%s" % (self.root_url,
-                                                                  series_id,
-                                                                  self.api_key)
+        url = "%s/series/vintagedates?series_id=%s" % (self.root_url, series_id)
         root = self.__fetch_data(url)
         if root is None:
             raise ValueError('No vintage date exists for series id: ' + series_id)
@@ -372,9 +368,8 @@ class Fred(object):
         info : DataFrame
             a DataFrame containing information about the matching Fred series
         """
-        url = "%s/series/search?search_text=%s&api_key=%s" % (self.root_url,
-                                                              quote_plus(text),
-                                                              self.api_key)
+        url = "%s/series/search?search_text=%s&" % (self.root_url,
+                                                    quote_plus(text))
         info = self.__get_search_results(url, limit, order_by, sort_order)
         return info
 
@@ -400,9 +395,7 @@ class Fred(object):
         info : DataFrame
             a DataFrame containing information about the matching Fred series
         """
-        url = "%s/release/series?release_id=%d&&api_key=%s" % (self.root_url,
-                                                               release_id,
-                                                               self.api_key)
+        url = "%s/release/series?release_id=%d" % (self.root_url, release_id)
         info = self.__get_search_results(url, limit, order_by, sort_order)
         if info is None:
             raise ValueError('No series exists for release id: ' + str(release_id))
@@ -430,9 +423,8 @@ class Fred(object):
         info : DataFrame
             a DataFrame containing information about the matching Fred series
         """
-        url = "%s/category/series?category_id=%d&api_key=%s" % (self.root_url,
-                                                                category_id,
-                                                                self.api_key)
+        url = "%s/category/series?category_id=%d&" % (self.root_url,
+                                                      category_id)
         info = self.__get_search_results(url, limit, order_by, sort_order)
         if info is None:
             raise ValueError('No series exists for category id: ' + str(category_id))
