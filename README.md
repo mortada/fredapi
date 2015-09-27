@@ -1,7 +1,5 @@
 
 [![fredapi pypi page](https://img.shields.io/pypi/dm/fredapi.svg)](https://pypi.python.org/pypi/fredapi)
-[![fredapi travis page](https://img.shields.io/travis/elmotec/fredapi.svg)](https://travis-ci.org/elmotec/fredapi)
-
 
 # fredapi: Python API for FRED (Federal Reserve Economic Data)
 
