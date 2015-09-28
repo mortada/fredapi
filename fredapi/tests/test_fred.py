@@ -235,7 +235,6 @@ class TestFred(unittest.TestCase):
         with self.assertRaises(ValueError) as context:
             self.fred.get_series('SP500',
                                  observation_start='invalid-datetime-str')
-        self.assertEqual(str(context.exception), 'Unknown string format')
         self.assertFalse(urlopen.called)
 
     @mock.patch('fredapi.fred.urlopen')
