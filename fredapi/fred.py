@@ -306,7 +306,7 @@ class Fred(object):
             data = None
         return data, num_results_total
 
-    def __get_search_results(self, url, limit, order_by, sort_order):
+    def __get_search_results(self, url, limit, order_by, sort_order, filter):
         """
         helper function for getting search results up to specified limit on the number of results. The Fred HTTP API
         truncates to 1000 results per request, so this may issue multiple HTTP requests to obtain more available data.
@@ -320,6 +320,12 @@ class Fred(object):
                 url = url + '&order_by=' + order_by
             else:
                 raise ValueError('%s is not in the valid list of order_by options: %s' % (order_by, str(order_by_options)))
+
+        if filter is not None:
+            if len(filter) == 2:
+                url = url + '&filter_variable=%s&filter_value=%s' % (filter[0], filter[1])
+            else:
+                raise ValueError('Filter should be a 2 item tuple like (filter_variable, filter_value)')
 
         sort_order_options = ['asc', 'desc']
         if sort_order is not None:
@@ -344,7 +350,7 @@ class Fred(object):
                 data = data.append(next_data)
         return data.head(max_results_needed)
 
-    def search(self, text, limit=1000, order_by=None, sort_order=None):
+    def search(self, text, limit=1000, order_by=None, sort_order=None, filter=None):
         """
         Do a fulltext search for series in the Fred dataset. Returns information about matching series in a DataFrame.
 
@@ -360,6 +366,9 @@ class Fred(object):
             'popularity'
         sort_order : str, optional
             sort the results by ascending or descending order. Valid options are 'asc' or 'desc'
+        filter : tuple, optional
+            filters the results. Expects a tuple like (filter_variable, filter_value).
+            Valid filter_variable values are 'frequency', 'units', and 'seasonal_adjustment'
 
         Returns
         -------
@@ -368,10 +377,10 @@ class Fred(object):
         """
         url = "%s/series/search?search_text=%s&" % (self.root_url,
                                                     quote_plus(text))
-        info = self.__get_search_results(url, limit, order_by, sort_order)
+        info = self.__get_search_results(url, limit, order_by, sort_order, filter)
         return info
 
-    def search_by_release(self, release_id, limit=0, order_by=None, sort_order=None):
+    def search_by_release(self, release_id, limit=0, order_by=None, sort_order=None, filter=None):
         """
         Search for series that belongs to a release id. Returns information about matching series in a DataFrame.
 
@@ -387,6 +396,9 @@ class Fred(object):
             'popularity'
         sort_order : str, optional
             sort the results by ascending or descending order. Valid options are 'asc' or 'desc'
+        filter : tuple, optional
+            filters the results. Expects a tuple like (filter_variable, filter_value).
+            Valid filter_variable values are 'frequency', 'units', and 'seasonal_adjustment'
 
         Returns
         -------
@@ -394,12 +406,12 @@ class Fred(object):
             a DataFrame containing information about the matching Fred series
         """
         url = "%s/release/series?release_id=%d" % (self.root_url, release_id)
-        info = self.__get_search_results(url, limit, order_by, sort_order)
+        info = self.__get_search_results(url, limit, order_by, sort_order, filter)
         if info is None:
             raise ValueError('No series exists for release id: ' + str(release_id))
         return info
 
-    def search_by_category(self, category_id, limit=0, order_by=None, sort_order=None):
+    def search_by_category(self, category_id, limit=0, order_by=None, sort_order=None, filter=None):
         """
         Search for series that belongs to a category id. Returns information about matching series in a DataFrame.
 
@@ -415,6 +427,9 @@ class Fred(object):
             'popularity'
         sort_order : str, optional
             sort the results by ascending or descending order. Valid options are 'asc' or 'desc'
+        filter : tuple, optional
+            filters the results. Expects a tuple like (filter_variable, filter_value).
+            Valid filter_variable values are 'frequency', 'units', and 'seasonal_adjustment'
 
         Returns
         -------
@@ -423,7 +438,7 @@ class Fred(object):
         """
         url = "%s/category/series?category_id=%d&" % (self.root_url,
                                                       category_id)
-        info = self.__get_search_results(url, limit, order_by, sort_order)
+        info = self.__get_search_results(url, limit, order_by, sort_order, filter)
         if info is None:
             raise ValueError('No series exists for category id: ' + str(category_id))
         return info
