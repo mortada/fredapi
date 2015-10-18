@@ -79,26 +79,32 @@ search_call = HTTPCall('release/series?release_id=175&' +
 <seriess realtime_start="2015-07-19" realtime_end="2015-07-19"
          order_by="series_id" sort_order="asc" count="6164"
          offset="0" limit="1000">
-  <series id="PCPI01001" realtime_start="2015-07-19" realtime_end="2015-07-19"
+  <series id="PCPI01001" realtime_start="2015-07-19"
+          realtime_end="2015-07-19"
           title="Per Capita Personal Income in Autauga County, AL"
           observation_start="1969-01-01" observation_end="2013-01-01"
           frequency="Annual" frequency_short="A" units="Dollars"
           units_short="$" seasonal_adjustment="Not Seasonally Adjusted"
-          seasonal_adjustment_short="NSA" last_updated="2015-01-29 12:10:21-06"
+          seasonal_adjustment_short="NSA"
+          last_updated="2015-01-29 12:10:21-06"
           popularity="0" notes="..." />
-  <series id="PCPI01003" realtime_start="2015-07-19" realtime_end="2015-07-19"
+  <series id="PCPI01003" realtime_start="2015-07-19"
+          realtime_end="2015-07-19"
           title="Per Capita Personal Income in Baldwin County, AL"
           observation_start="1969-01-01" observation_end="2013-01-01"
           frequency="Annual" frequency_short="A" units="Dollars"
           units_short="$" seasonal_adjustment="Not Seasonally Adjusted"
-          seasonal_adjustment_short="NSA" last_updated="2015-01-29 12:10:21-06"
+          seasonal_adjustment_short="NSA"
+          last_updated="2015-01-29 12:10:21-06"
           popularity="0" notes="..." />
-  <series id="PCPI01005" realtime_start="2015-07-19" realtime_end="2015-07-19"
+  <series id="PCPI01005" realtime_start="2015-07-19"
+          realtime_end="2015-07-19"
           title="Per Capita Personal Income in Barbour County, AL"
           observation_start="1969-01-01" observation_end="2013-01-01"
           frequency="Annual" frequency_short="A" units="Dollars"
           units_short="$" seasonal_adjustment="Not Seasonally Adjusted"
-          seasonal_adjustment_short="NSA" last_updated="2015-01-29 12:10:21-06"
+          seasonal_adjustment_short="NSA"
+          last_updated="2015-01-29 12:10:21-06"
           popularity="0" notes="..." />
   <!-- more series come here, but not useful for the test... -->
 </seriess>
@@ -149,7 +155,6 @@ class TestFred(unittest.TestCase):
         self.fred = fredapi.Fred(api_key=fred_api_key)
         self.fake_fred_call = fake_fred_call
         self.__original_urlopen = fredapi.fred.urlopen
-
 
     def tearDown(self):
         """Cleanup."""
@@ -230,9 +235,9 @@ class TestFred(unittest.TestCase):
         """Test invalid keyword argument in call to get_series."""
         url = '{}/series?series_id=invalid&api_key={}'.format(self.root_url,
                                                               fred_api_key)
-        side_effect = fredapi.fred.HTTPError(url, 400, '', '', sys.stderr)
+        side_effect = fredapi.fred.HTTPError(url, 400, '', '', io.StringIO())
         self.prepare_urlopen(urlopen, side_effect=side_effect)
-        with self.assertRaises(ValueError) as context:
+        with self.assertRaises(ValueError):
             self.fred.get_series('SP500',
                                  observation_start='invalid-datetime-str')
         self.assertFalse(urlopen.called)
@@ -249,12 +254,11 @@ class TestFred(unittest.TestCase):
                                 'seasonal_adjustment_short']])
         expected = textwrap.dedent('''\
                   popularity observation_start seasonal_adjustment_short
-        series id
+        series id                                                       
         PCPI01001          0        1969-01-01                       NSA
         PCPI01003          0        1969-01-01                       NSA
         PCPI01005          0        1969-01-01                       NSA''')
-        for aline, eline in zip(actual.split('\n'), expected.split('\n')):
-            self.assertEqual(aline.strip(), eline.strip())
+        self.assertEqual(actual.split('\n'), expected.split('\n'))
 
 
 if __name__ == '__main__':
