@@ -150,7 +150,6 @@ class TestFred(unittest.TestCase):
         self.fake_fred_call = fake_fred_call
         self.__original_urlopen = fredapi.fred.urlopen
 
-
     def tearDown(self):
         """Cleanup."""
         pass
@@ -249,12 +248,11 @@ class TestFred(unittest.TestCase):
                                 'seasonal_adjustment_short']])
         expected = textwrap.dedent('''\
                   popularity observation_start seasonal_adjustment_short
-        series id
+        series id                                                       
         PCPI01001          0        1969-01-01                       NSA
         PCPI01003          0        1969-01-01                       NSA
         PCPI01005          0        1969-01-01                       NSA''')
-        for aline, eline in zip(actual.split('\n'), expected.split('\n')):
-            self.assertEqual(aline.strip(), eline.strip())
+        self.assertEqual(actual.split('\n'), expected.split('\n'))
 
 
 if __name__ == '__main__':
