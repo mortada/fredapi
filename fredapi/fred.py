@@ -72,6 +72,8 @@ class Fred(object):
         """
         helper function for parsing FRED date string into datetime
         """
+        if date_str == self.latest_realtime_end:
+            return None
         rv = pd.to_datetime(date_str, format=format)
         if hasattr(rv, 'to_datetime'):
             rv = rv.to_datetime()
