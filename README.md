@@ -38,7 +38,7 @@ In [ALFRED](http://research.stlouisfed.org/tips/alfred/) there is the concept of
 
 - date: the date the value is for
 - realtime_start: the first date the value is valid
-- realitime_end: the last date the value is valid
+- realtime_end: the last date the value is valid
 
 For instance, there has been three observations (data points) for the GDP of 2014 Q1:
 
@@ -55,11 +55,11 @@ If you pass realtime_start and/or realtime_end to `get_series`, you will get a p
 For instance, with observation_start and observation_end set to 2015-01-01 and
 realtime_start set to 2015-01-01, one will get:
 ```
-                                           GDP
+                                 GDP
 obs_date   rt_start   rt_end
-2015-01-01 2015-04-29 2015-05-28 00:00:00  17710.0
-           2015-05-29 2015-06-23 00:00:00  17665.0
-           2015-06-24 9999-12-31           17693.3
+2015-01-01 2015-04-29 2015-05-28 17710.0
+           2015-05-29 2015-06-23 17665.0
+           2015-06-24 9999-12-31 17693.3
 ```
 
 ### Get first data release only (i.e. ignore revisions)
@@ -95,6 +95,39 @@ this outputs:
 2014-04-01    17294.7
 dtype: float64
 ```
+
+### Get latest data for multiple series for the latest release
+```python
+data = fred.get_dataframe(['SP500', 'GDP'], frequency='q')
+data.tail()
+```
+this outputs:
+```
+              SP500      GDP
+2014-07-31  1975.91  17599.8
+2014-10-31  2009.34  17703.7
+2015-01-31  2063.69  17693.3
+dtype: float64
+```
+
+Note that if you do not specify the frequency each series will be output on its
+own intrinsic frequency introducing NaN in the dataframe.
+```python
+data = fred.get_dataframe(['GDP', 'PAYEMS'])
+data.tail()
+```
+outputs:
+```
+                GDP  PAYEMS
+2014-07-31  17599.8  139156
+2014-08-31      NaN  139369
+2014-09-30      NaN  139619
+2014-10-31  17703.7  139840
+2014-11-30      NaN  140263
+2014-12-31      NaN  140592
+2015-01-31  17693.3  140793
+```
+
 
 ### Get latest data known on a given date
 
@@ -227,6 +260,37 @@ this outputs:
     </tr>
   </tbody>
 </table>
+
+### Get multiple series at multiple point in time
+
+This work the same way as for the latest release, one just adds either
+realtime_start, realtime_end, or both.
+
+```python
+data = fred.get_dataframe(['GDP', 'CP'], observation_start='7/1/2014',
+                          observation_end='1/1/2015', realtime_start='7/1/2014')
+data.tail()
+```
+outputs:
+```
+                                      GDP      CP
+obs_date   rt_start   rt_end                     
+2014-07-01 2014-10-30 2014-11-24  17535.4     NaN
+           2014-11-25 2014-12-22  17555.2  1872.7
+           2014-12-23 NaT         17599.8     NaN
+                      2015-07-29      NaN  1894.6
+           2015-07-30 NaT             NaN  1761.1
+2014-10-01 2015-01-30 2015-02-26  17710.7     NaN
+           2015-02-27 2015-03-26  17701.3     NaN
+           2015-03-27 NaT         17703.7     NaN
+                      2015-07-29      NaN  1837.5
+           2015-07-30 NaT             NaN  1700.5
+2015-01-01 2015-04-29 2015-05-28  17710.0     NaN
+           2015-05-29 2015-06-23  17665.0  1893.8
+           2015-06-24 NaT         17693.3     NaN
+                      2015-07-29      NaN  1891.2
+           2015-07-30 NaT             NaN  1734.5''')
+```
 
 ### Get all vintage dates
 ```python
