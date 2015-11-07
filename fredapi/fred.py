@@ -20,11 +20,32 @@ HTTPError = url_error.HTTPError
 
 
 class Fred(object):
+
+    """Main interface to Fred."""
+
     earliest_realtime_start = '1776-07-04'
     latest_realtime_end = '9999-12-31'
     nan_char = '.'
     max_results_per_request = 1000
     root_url = 'https://api.stlouisfed.org/fred'
+    # Maps Fred frequency code to pandas frequency code.
+    freq_map = {'d': 'B',  # business days.
+                'w': 'W',  # weekly.
+                'bw' : '2W',  # bi-weekly
+                'm': 'M',  # monthly.
+                'q': '3M',  # quarterly (not checked).
+                'sa': '6M',  # semi-annual.
+                'a': '12M',  # annual (not checked).
+                'wef': 'W-FRI',  # Weekly, Ending Friday
+                'weth': 'W-THU',  # Weekly Ending Thursday
+                'wew': 'W-WED',  # Weekly Ending Wednesday
+                'wetu': 'W-TUE',  # Weekly Ending Tuesday
+                'wem': 'W-MON',  # Weekly Ending Monday
+                'wesu': 'W-SUN',  # Weekly Ending Sunday
+                'wesa': 'W-SAT',  # Weekly Ending Saturday
+                'bwew': '2W-WED',  # Weekly Ending Wednesday
+                'bwem': '2W-MON',  # Weekly Ending Monday
+                }
 
     def __init__(self,
                  api_key=None,
@@ -70,7 +91,17 @@ class Fred(object):
 
     def _parse(self, date_str, format='%Y-%m-%d'):
         """
-        helper function for parsing FRED date string into datetime
+        Helper function for parsing FRED date string into datetime.datetime.
+
+        FRED max value of 9999-12-31 is converted to None to stick with
+        database (SQL NULL) conventions and allow pandas to convert the
+        time stamp to a pandas.Timestamp if the value is used in an index
+        (it seems pandas.Timestamp can be part of an index, but not
+        datetime.datetime).
+
+        Returns:
+            Time stamp as datetime.datetime or None for 9999-12-31
+
         """
         if date_str == self.latest_realtime_end:
             return None
@@ -81,7 +112,10 @@ class Fred(object):
 
     def get_series_info(self, series_id):
         """
-        Get information about a series such as its title, frequency, observation start/end dates, units, notes, etc.
+        Get information about a series.
+
+        Information includes things such as its title, frequency, observation
+        start/end dates, units, notes, etc.
 
         Parameters
         ----------
@@ -173,6 +207,66 @@ class Fred(object):
         else:
             return pd.Series(values, index=obsdates)
 
+
+    def get_dataframe(self, series_ids, observation_start=None,
+                      observation_end=None, **kwargs):
+        """Get latest release for multiple series in one dataframe.
+
+        Pass a frequency in kwargs to specify the release frequency of interest.
+        It will save a call to the series info to find out what frequency the
+        series is released.
+
+        If the series native release frequencies (default used unless one
+        specify the frequency in kwargs) do not match, the dataframe will show
+        NaN.
+
+        Parameters
+        ----------
+        series_ids : list of str
+            Fred series id such as ['CPIAUCSL', 'SP500']
+        observation_start : datetime or datetime-like str such as '7/1/2014'
+            earliest observation date (optional)
+        observation_end : datetime or datetime-like str such as '7/1/2014'
+            latest observation date (optional)
+        frequency : str
+            Values for frequency are expected to be lowercase codes (e.g. w, m,
+            q, ...).  For more example, See
+            https://api.stlouisfed.org/docs/fred/series_observations.html#frequency
+        kwargs : additional parameters
+            Any additional parameters supported by FRED.  For more info, see
+            https://api.stlouisfed.org/docs/fred/series_observations.html
+
+        Returns
+        -------
+        info : pandas.DataFrame
+            a DataFrame where each row is the observation date and the value
+            for the Fred series.
+
+        """
+        all_series = []
+        columns = []
+        freq_override = None
+        if 'frequency' in kwargs:
+            freq_override = kwargs['frequency']
+        for series_id in series_ids:
+            if freq_override:
+                freq = freq_override
+            else:
+                info = self.get_series_info(series_id)
+                freq = info['frequency_short'].lower()
+            serie = self.get_series(series_id,
+                                     observation_start=observation_start,
+                                     observation_end=observation_end, **kwargs)
+            # If the serie is not a stored as a dataframe, turn it into one.
+            if hasattr(serie, 'to_frame'):
+                serie = serie.to_frame(series_id)
+            actual_start = serie.index[0]
+            if freq not in self.freq_map.keys():
+                raise ValueError('unknown frequency {} for {}'.
+                                 format(freq, series_id))
+            all_series.append(serie)
+            columns.append(series_id)
+        return pd.concat(all_series, axis=1)
 
     def get_series_latest_release(self, series_id):
         """
