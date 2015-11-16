@@ -453,27 +453,27 @@ class TestFred(unittest.TestCase):
         urlopen.assert_called_with(gdp_obs_rt_call.url)
         actual = str(df)
         expected = textwrap.dedent('''\
-                                                  GDP
-            obs_date   rt_start   rt_end             
-            2014-07-01 2014-10-30 2014-11-24  17535.4
-                       2014-11-25 2014-12-22  17555.2
-                       2014-12-23 NaT         17599.8
-            2014-10-01 2015-01-30 2015-02-26  17710.7
-                       2015-02-27 2015-03-26  17701.3
-                       2015-03-27 NaT         17703.7
-            2015-01-01 2015-04-29 2015-05-28  17710.0
-                       2015-05-29 2015-06-23  17665.0
-                       2015-06-24 NaT         17693.3''')
+                                                                     GDP
+            obs_date   rt_start   rt_end                                
+            2014-07-01 2014-10-30 2014-11-24 00:00:00.000000000  17535.4
+                       2014-11-25 2014-12-22 00:00:00.000000000  17555.2
+                       2014-12-23 2262-04-11 23:47:16.854775807  17599.8
+            2014-10-01 2015-01-30 2015-02-26 00:00:00.000000000  17710.7
+                       2015-02-27 2015-03-26 00:00:00.000000000  17701.3
+                       2015-03-27 2262-04-11 23:47:16.854775807  17703.7
+            2015-01-01 2015-04-29 2015-05-28 00:00:00.000000000  17710.0
+                       2015-05-29 2015-06-23 00:00:00.000000000  17665.0
+                       2015-06-24 2262-04-11 23:47:16.854775807  17693.3''')
         self.assertEqual(actual.split('\n'), expected.split('\n'))
 
     @mock.patch('fredapi.fred.urlopen')
-    def test_get_dataframe_forced_freq(self, urlopen):
-        """Test get_dataframe to multi-series with heterogeous frequency."""
+    def test_get_multi_series_forced_freq(self, urlopen):
+        """Test get_multi_series to multi-series with heterogeous frequency."""
         series = ['SP500', 'GDP']
         side_effects = [sp500_obs_q_call.response,
                         gdp_obs_q_call.response]
         self.prepare_urlopen(urlopen, side_effect=side_effects)
-        df = self.fred.get_dataframe(series, observation_start='7/1/2014',
+        df = self.fred.get_multi_series(series, observation_start='7/1/2014',
                                      observation_end='1/1/2015',
                                      frequency='q')
         expected_calls = [(sp500_obs_q_call.url),
@@ -488,15 +488,15 @@ class TestFred(unittest.TestCase):
         self.assertEqual(str(df), expected)
 
     @mock.patch('fredapi.fred.urlopen')
-    def test_get_dataframe(self, urlopen):
-        """Test get_dataframe to get multiple series with info."""
+    def test_get_multi_series(self, urlopen):
+        """Test get_multi_series to get multiple series with info."""
         series = ['GDP', 'PAYEMS']
         side_effects = [gdp_info_call.response,
                         gdp_obs_call.response,
                         payems_info_call.response,
                         payems_obs_call.response,]
         self.prepare_urlopen(urlopen, side_effect=side_effects)
-        df = self.fred.get_dataframe(series, observation_start='7/1/2014',
+        df = self.fred.get_multi_series(series, observation_start='7/1/2014',
                                      observation_end='1/1/2015')
         expected_calls = [(gdp_info_call.url),
                           (gdp_obs_call.url),
@@ -515,17 +515,18 @@ class TestFred(unittest.TestCase):
             2015-01-01  17693.3  140793''')
 
     @mock.patch('fredapi.fred.urlopen')
-    def test_get_dataframe_with_realtime(self, urlopen):
-        """Test get_dataframe to get multi-series with realtime info."""
+    def test_get_multi_series_with_custom_rt_end(self, urlopen):
+        """Test get_multi_series with customized Fred.latest_time_stamp."""
         series = ['GDP', 'CP']
         side_effects = [gdp_info_call.response,
                         gdp_obs_rt_call.response,
                         cp_info_call.response,
                         cp_obs_rt_call.response,]
         self.prepare_urlopen(urlopen, side_effect=side_effects)
-        df = self.fred.get_dataframe(series, observation_start='7/1/2014',
-                                     observation_end='1/1/2015',
-                                     realtime_start='7/1/2014')
+        self.fred.latest_time_stamp = dt.datetime(2262, 4, 11)
+        df = self.fred.get_multi_series(series, observation_start='7/1/2014',
+                                        observation_end='1/1/2015',
+                                        realtime_start='7/1/2014')
         expected_calls = [(gdp_info_call.url),
                           (gdp_obs_rt_call.url),
                           (cp_info_call.url),
@@ -537,20 +538,20 @@ class TestFred(unittest.TestCase):
             obs_date   rt_start   rt_end                     
             2014-07-01 2014-10-30 2014-11-24  17535.4     NaN
                        2014-11-25 2014-12-22  17555.2  1872.7
-                       2014-12-23 NaT         17599.8     NaN
-                                  2015-07-29      NaN  1894.6
-                       2015-07-30 NaT             NaN  1761.1
+                       2014-12-23 2015-07-29      NaN  1894.6
+                                  2262-04-11  17599.8     NaN
+                       2015-07-30 2262-04-11      NaN  1761.1
             2014-10-01 2015-01-30 2015-02-26  17710.7     NaN
                        2015-02-27 2015-03-26  17701.3     NaN
-                       2015-03-27 NaT         17703.7     NaN
-                                  2015-07-29      NaN  1837.5
-                       2015-07-30 NaT             NaN  1700.5
+                       2015-03-27 2015-07-29      NaN  1837.5
+                                  2262-04-11  17703.7     NaN
+                       2015-07-30 2262-04-11      NaN  1700.5
             2015-01-01 2015-04-29 2015-05-28  17710.0     NaN
                        2015-05-29 2015-06-23  17665.0  1893.8
-                       2015-06-24 NaT         17693.3     NaN
-                                  2015-07-29      NaN  1891.2
-                       2015-07-30 NaT             NaN  1734.5''')
-        self.assertEqual(str(df), expected)
+                       2015-06-24 2015-07-29      NaN  1891.2
+                                  2262-04-11  17693.3     NaN
+                       2015-07-30 2262-04-11      NaN  1734.5''')
+        self.assertEqual(str(df).split('\n'), expected.split('\n'))
 
 if __name__ == '__main__':
     unittest.main()

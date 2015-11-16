@@ -292,6 +292,24 @@ obs_date   rt_start   rt_end
            2015-07-30 NaT             NaN  1734.5''')
 ```
 
+The advantage of a this approach is that all the information is downloaded
+now and one can apply further transformation without making more web queries.
+
+For instance:
+```python
+dfo = df.reset_index(levels=[1, 2])  # move rt_start and rt_end to columns.
+target = pd.to_datetime('2015-06-01')
+dfo[(dfo.rt_start < target) & (target < dfo.rt_end)].groupby(level=0).first()
+```
+will output the value of the series as of the `target` date:
+```python
+             rt_start     rt_end      GDP      CP
+obs_date
+2014-07-01 2014-12-23 2015-07-29  17599.8  1894.6
+2014-10-01 2015-03-27 2015-07-29  17703.7  1837.5
+2015-01-01 2015-05-29 2015-06-23  17665.0  1893.8
+```
+
 ### Get all vintage dates
 ```python
 from __future__ import print_function
