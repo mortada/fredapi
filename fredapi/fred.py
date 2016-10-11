@@ -73,8 +73,8 @@ class Fred(object):
         helper function for parsing FRED date string into datetime
         """
         rv = pd.to_datetime(date_str, format=format)
-        if hasattr(rv, 'to_datetime'):
-            rv = rv.to_datetime()
+        # if hasattr(rv, 'to_datetime'):
+            # rv = rv.to_datetime()
         return rv
 
     def get_series_info(self, series_id):
