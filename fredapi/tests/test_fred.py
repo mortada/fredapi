@@ -16,8 +16,6 @@ import datetime as dt
 import textwrap
 import contextlib
 
-import pandas as pd
-
 import fredapi
 import fredapi.fred
 
@@ -79,26 +77,32 @@ search_call = HTTPCall('release/series?release_id=175&' +
 <seriess realtime_start="2015-07-19" realtime_end="2015-07-19"
          order_by="series_id" sort_order="asc" count="6164"
          offset="0" limit="1000">
-  <series id="PCPI01001" realtime_start="2015-07-19" realtime_end="2015-07-19"
+  <series id="PCPI01001" realtime_start="2015-07-19"
+          realtime_end="2015-07-19"
           title="Per Capita Personal Income in Autauga County, AL"
           observation_start="1969-01-01" observation_end="2013-01-01"
           frequency="Annual" frequency_short="A" units="Dollars"
           units_short="$" seasonal_adjustment="Not Seasonally Adjusted"
-          seasonal_adjustment_short="NSA" last_updated="2015-01-29 12:10:21-06"
+          seasonal_adjustment_short="NSA"
+          last_updated="2015-01-29 12:10:21-06"
           popularity="0" notes="..." />
-  <series id="PCPI01003" realtime_start="2015-07-19" realtime_end="2015-07-19"
+  <series id="PCPI01003" realtime_start="2015-07-19"
+          realtime_end="2015-07-19"
           title="Per Capita Personal Income in Baldwin County, AL"
           observation_start="1969-01-01" observation_end="2013-01-01"
           frequency="Annual" frequency_short="A" units="Dollars"
           units_short="$" seasonal_adjustment="Not Seasonally Adjusted"
-          seasonal_adjustment_short="NSA" last_updated="2015-01-29 12:10:21-06"
+          seasonal_adjustment_short="NSA"
+          last_updated="2015-01-29 12:10:21-06"
           popularity="0" notes="..." />
-  <series id="PCPI01005" realtime_start="2015-07-19" realtime_end="2015-07-19"
+  <series id="PCPI01005" realtime_start="2015-07-19"
+          realtime_end="2015-07-19"
           title="Per Capita Personal Income in Barbour County, AL"
           observation_start="1969-01-01" observation_end="2013-01-01"
           frequency="Annual" frequency_short="A" units="Dollars"
           units_short="$" seasonal_adjustment="Not Seasonally Adjusted"
-          seasonal_adjustment_short="NSA" last_updated="2015-01-29 12:10:21-06"
+          seasonal_adjustment_short="NSA"
+          last_updated="2015-01-29 12:10:21-06"
           popularity="0" notes="..." />
   <!-- more series come here, but not useful for the test... -->
 </seriess>
@@ -120,6 +124,39 @@ payems_info_call = HTTPCall('series?series_id=PAYEMS',
           last_updated="2015-06-05 08:47:20-05"
           popularity="86" notes="..." />
 </seriess>'''))
+gdp_obs_rt_call = HTTPCall('series/observations?{}&{}&{}&{}'.
+                           format('series_id=GDP',
+                                  'observation_start=2014-07-01',
+                                  'observation_end=2015-01-01',
+                                  'realtime_start=2014-07-01'),
+                           response=textwrap.dedent('''\
+<?xml version="1.0" encoding="utf-8" ?>
+<observations realtime_start="2014-07-01" realtime_end="9999-12-31"
+              observation_start="2014-07-01" observation_end="2015-01-01"
+              units="lin" output_type="1" file_type="xml"
+              order_by="observation_date" sort_order="asc" count="9"
+              offset="0" limit="100000">
+  <observation realtime_start="2014-10-30" realtime_end="2014-11-24"
+               date="2014-07-01" value="17535.4"/>
+  <observation realtime_start="2014-11-25" realtime_end="2014-12-22"
+               date="2014-07-01" value="17555.2"/>
+  <observation realtime_start="2014-12-23" realtime_end="9999-12-31"
+               date="2014-07-01" value="17599.8"/>
+  <observation realtime_start="2015-01-30" realtime_end="2015-02-26"
+               date="2014-10-01" value="17710.7"/>
+  <observation realtime_start="2015-02-27" realtime_end="2015-03-26"
+               date="2014-10-01" value="17701.3"/>
+  <observation realtime_start="2015-03-27" realtime_end="9999-12-31"
+               date="2014-10-01" value="17703.7"/>
+  <observation realtime_start="2015-04-29" realtime_end="2015-05-28"
+               date="2015-01-01" value="17710.0"/>
+  <observation realtime_start="2015-05-29" realtime_end="2015-06-23"
+               date="2015-01-01" value="17665.0"/>
+  <observation realtime_start="2015-06-24" realtime_end="9999-12-31"
+               date="2015-01-01" value="17693.3"/>
+</observations>
+'''))
+
 
 
 class TestFred(unittest.TestCase):
@@ -149,7 +186,6 @@ class TestFred(unittest.TestCase):
         self.fred = fredapi.Fred(api_key=fred_api_key)
         self.fake_fred_call = fake_fred_call
         self.__original_urlopen = fredapi.fred.urlopen
-
 
     def tearDown(self):
         """Cleanup."""
@@ -230,11 +266,11 @@ class TestFred(unittest.TestCase):
         """Test invalid keyword argument in call to get_series."""
         url = '{}/series?series_id=invalid&api_key={}'.format(self.root_url,
                                                               fred_api_key)
-        side_effect = fredapi.fred.HTTPError(url, 400, '', '', sys.stderr)
+        side_effect = fredapi.fred.HTTPError(url, 400, '', '', io.StringIO())
         self.prepare_urlopen(urlopen, side_effect=side_effect)
-        with self.assertRaises(ValueError) as context:
-            self.fred.get_series('SP500',
-                                 observation_start='invalid-datetime-str')
+        # FIXME: different environment throw ValueError or TypeError.
+        with self.assertRaises(Exception):
+            self.fred.get_series('SP500', observation_start='invalid')
         self.assertFalse(urlopen.called)
 
     @mock.patch('fredapi.fred.urlopen')
@@ -249,12 +285,35 @@ class TestFred(unittest.TestCase):
                                 'seasonal_adjustment_short']])
         expected = textwrap.dedent('''\
                   popularity observation_start seasonal_adjustment_short
-        series id
+        series id                                                       
         PCPI01001          0        1969-01-01                       NSA
         PCPI01003          0        1969-01-01                       NSA
         PCPI01005          0        1969-01-01                       NSA''')
-        for aline, eline in zip(actual.split('\n'), expected.split('\n')):
-            self.assertEqual(aline.strip(), eline.strip())
+        self.assertEqual(actual.split('\n'), expected.split('\n'))
+
+    @mock.patch('fredapi.fred.urlopen')
+    def test_get_series_with_realtime(self, urlopen):
+        """Test get_series with realtime argument."""
+        side_effects = [gdp_obs_rt_call.response]
+        self.prepare_urlopen(urlopen, side_effect=side_effects)
+        df = self.fred.get_series('GDP', observation_start='7/1/2014',
+                                  observation_end='1/1/2015',
+                                  realtime_start='7/1/2014')
+        urlopen.assert_called_with(gdp_obs_rt_call.url)
+        actual = str(df)
+        expected = textwrap.dedent('''\
+                                                  GDP
+            obs_date   rt_start   rt_end             
+            2014-07-01 2014-10-30 2014-11-24  17535.4
+                       2014-11-25 2014-12-22  17555.2
+                       2014-12-23 NaT         17599.8
+            2014-10-01 2015-01-30 2015-02-26  17710.7
+                       2015-02-27 2015-03-26  17701.3
+                       2015-03-27 NaT         17703.7
+            2015-01-01 2015-04-29 2015-05-28  17710.0
+                       2015-05-29 2015-06-23  17665.0
+                       2015-06-24 NaT         17693.3''')
+        self.assertEqual(actual.split('\n'), expected.split('\n'))
 
 
 if __name__ == '__main__':

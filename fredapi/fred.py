@@ -72,6 +72,8 @@ class Fred(object):
         """
         helper function for parsing FRED date string into datetime
         """
+        if date_str == self.latest_realtime_end:
+            return None
         rv = pd.to_datetime(date_str, format=format)
         if hasattr(rv, 'to_pydatetime'):
             rv = rv.to_pydatetime()
@@ -98,7 +100,9 @@ class Fred(object):
         info = pd.Series(root.getchildren()[0].attrib)
         return info
 
-    def get_series(self, series_id, observation_start=None, observation_end=None, **kwargs):
+    def get_series(self, series_id, observation_start=None,
+                   observation_end=None, realtime_start=None,
+                   realtime_end=None, **kwargs):
         """
         Get data for a Fred series id. This fetches the latest known data, and is equivalent to get_series_latest_release()
 
@@ -106,17 +110,25 @@ class Fred(object):
         ----------
         series_id : str
             Fred series id such as 'CPIAUCSL'
-        observation_start : datetime or datetime-like str such as '7/1/2014', optional
-            earliest observation date
-        observation_end : datetime or datetime-like str such as '7/1/2014', optional
-            latest observation date
+
+        observation_start : datetime or datetime-like str such as '7/1/2014'
+            earliest observation date (optional)
+        observation_end : datetime or datetime-like str such as '7/1/2014'
+            latest observation date (optional)
+        realtime_start : datetime or datetime-like str such as '7/1/2014'
+            earliest as-of date (optional)
+        realtime_end : datetime or datetime-like str such as '7/1/2014'
+            latest as-of date (optional)
         kwargs : additional parameters
-            Any additional parameters supported by FRED. You can see https://api.stlouisfed.org/docs/fred/series_observations.html for the full list
+            Any additional parameters supported by FRED. You can see
+            https://api.stlouisfed.org/docs/fred/series_observations.html
+            for the full list
 
         Returns
         -------
         data : Series
-            a Series where each index is the observation date and the value is the data for the Fred series
+            a pandas Series where each index is the observation date and the
+            value is the data for the Fred series
         """
         url = "%s/series/observations?series_id=%s" % (self.root_url, series_id)
         if observation_start is not None:
@@ -126,20 +138,41 @@ class Fred(object):
         if observation_end is not None:
             observation_end = pd.to_datetime(observation_end, errors='raise')
             url += '&observation_end=' + observation_end.strftime('%Y-%m-%d')
+        if realtime_start is not None:
+            realtime_start = pd.to_datetime(realtime_start, errors='raise')
+            url += '&realtime_start=' + realtime_start.strftime('%Y-%m-%d')
+        if realtime_end is not None:
+            realtime_end = pd.to_datetime(realtime_end, errors='raise')
+            url += '&realtime_end=' + realtime_end.strftime('%Y-%m-%d')
         if kwargs.keys():
             url += '&' + urlencode(kwargs)
         root = self.__fetch_data(url)
         if root is None:
             raise ValueError('No data exists for series id: ' + series_id)
-        data = {}
+        realtime = (realtime_start or realtime_end)
+        values = []
+        obsdates = []
+        rtstarts = []
+        rtends = []
         for child in root.getchildren():
             val = child.get('value')
             if val == self.nan_char:
                 val = float('NaN')
             else:
                 val = float(val)
-            data[self._parse(child.get('date'))] = val
-        return pd.Series(data)
+            values.append(val)
+            obsdates.append(self._parse(child.get('date')))
+            if realtime:
+                rtstarts.append(self._parse(child.get('realtime_start')))
+                rtends.append(self._parse(child.get('realtime_end')))
+        if realtime:
+            names = ['obs_date', 'rt_start', 'rt_end']
+            index = pd.MultiIndex.from_arrays([obsdates, rtstarts, rtends],
+                                              names=names)
+            return pd.DataFrame(values, index=index, columns=[series_id])
+        else:
+            return pd.Series(values, index=obsdates)
+
 
     def get_series_latest_release(self, series_id):
         """
