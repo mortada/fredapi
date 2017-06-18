@@ -1,6 +1,4 @@
 
-[![fredapi pypi page](https://img.shields.io/pypi/dm/fredapi.svg)](https://pypi.python.org/pypi/fredapi)
-
 # fredapi: Python API for FRED (Federal Reserve Economic Data)
 
 `fredapi` is a Python API for the [FRED](http://research.stlouisfed.org/fred2/) data provided by the
