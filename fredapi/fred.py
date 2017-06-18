@@ -73,8 +73,8 @@ class Fred(object):
         helper function for parsing FRED date string into datetime
         """
         rv = pd.to_datetime(date_str, format=format)
-        if hasattr(rv, 'to_datetime'):
-            rv = rv.to_datetime()
+        if hasattr(rv, 'to_pydatetime'):
+            rv = rv.to_pydatetime()
         return rv
 
     def get_series_info(self, series_id):
@@ -244,8 +244,7 @@ class Fred(object):
                        'date': date,
                        'value': val}
             i += 1
-        from pandas import DataFrame
-        data = DataFrame(data).T
+        data = pd.DataFrame(data).T
         return data
 
     def get_series_vintage_dates(self, series_id):
@@ -295,8 +294,7 @@ class Fred(object):
                 data[series_id][field] = child.get(field)
 
         if num_results_returned > 0:
-            from pandas import DataFrame
-            data = DataFrame(data, columns=series_ids).T
+            data = pd.DataFrame(data, columns=series_ids).T
             # parse datetime columns
             for field in ["realtime_start", "realtime_end", "observation_start", "observation_end", "last_updated"]:
                 data[field] = data[field].apply(self._parse, format=None)
