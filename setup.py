@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from setuptools import setup
-from fredapi.version import version as __version__
+version_str = open('fredapi/version.py').read().strip().split('=')[-1].strip(" '")
 
 requires = ['pandas']
 
@@ -10,7 +10,7 @@ LONG_DESCRIPTION = open('DESCRIPTION.rst').read()
 
 setup(
     name="fredapi",
-    version=__version__,
+    version=version_str,
     url='https://github.com/mortada/fredapi',
     author='Mortada Mehyar',
     # author_email='',
