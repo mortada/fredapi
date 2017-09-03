@@ -1,6 +1,4 @@
-
 from __future__ import unicode_literals
-
 import sys
 if sys.version_info[0] >= 3:
     unicode = str
@@ -15,12 +13,9 @@ else:
 import datetime as dt
 import textwrap
 import contextlib
-
 import pandas as pd
-
 import fredapi
 import fredapi.fred
-
 
 
 # Change here if you want to make actual calls to Fred
@@ -30,6 +25,7 @@ fake_fred_call = True
 fred_api_key = 'secret'
 if not fake_fred_call:
     fred_api_key = fredapi.Fred().api_key
+
 
 class HTTPCall(object):
     """Encapsulates faked Fred call data."""
@@ -74,7 +70,7 @@ sp500_obs_call = HTTPCall('series/observations?series_id=SP500&{}&{}'.
 </observations>'''))
 search_call = HTTPCall('release/series?release_id=175&' +
                        'order_by=series_id&sort_order=asc',
-                       response = textwrap.dedent('''\
+                       response=textwrap.dedent('''\
 <?xml version="1.0" encoding="utf-8"?>
 <seriess realtime_start="2015-07-19" realtime_end="2015-07-19"
          order_by="series_id" sort_order="asc" count="6164"
@@ -150,7 +146,6 @@ class TestFred(unittest.TestCase):
         self.fake_fred_call = fake_fred_call
         self.__original_urlopen = fredapi.fred.urlopen
 
-
     def tearDown(self):
         """Cleanup."""
         pass
@@ -173,7 +168,7 @@ class TestFred(unittest.TestCase):
         serie = self.fred.get_series('SP500', observation_start='9/2/2014',
                                      observation_end='9/5/2014')
         urlopen.assert_called_with(sp500_obs_call.url)
-        self.assertEqual(serie.ix['9/2/2014'], 2002.28)
+        self.assertEqual(serie.loc['9/2/2014'], 2002.28)
         self.assertEqual(len(serie), 4)
 
     @mock.patch('fredapi.fred.urlopen')
@@ -219,7 +214,7 @@ class TestFred(unittest.TestCase):
         '''.format(error_msg))
         fp = io.StringIO(unicode(xml_error))
         side_effect = fredapi.fred.HTTPError(url, 400, 'Bad Request', '', fp)
-        self.prepare_urlopen(urlopen, side_effect = side_effect)
+        self.prepare_urlopen(urlopen, side_effect=side_effect)
         with self.assertRaises(ValueError) as context:
             self.fred.get_series_info('invalid')
         self.assertEqual(unicode(context.exception), error_msg)
