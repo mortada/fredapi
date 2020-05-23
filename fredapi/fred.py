@@ -1,6 +1,8 @@
 
+import pandas as pd
 import os
 import sys
+import string
 import xml.etree.ElementTree as ET
 if sys.version_info[0] >= 3:
     import urllib.request as url_request
@@ -11,7 +13,6 @@ else:
     import urllib as url_parse
     import urllib2 as url_error
 
-import pandas as pd
 
 urlopen = url_request.urlopen
 quote_plus = url_parse.quote_plus
@@ -118,11 +119,13 @@ class Fred(object):
         data : Series
             a Series where each index is the observation date and the value is the data for the Fred series
         """
-        url = "%s/series/observations?series_id=%s" % (self.root_url, series_id)
+        url = "%s/series/observations?series_id=%s" % (
+            self.root_url, series_id)
         if observation_start is not None:
             observation_start = pd.to_datetime(observation_start,
                                                errors='raise')
-            url += '&observation_start=' + observation_start.strftime('%Y-%m-%d')
+            url += '&observation_start=' + \
+                observation_start.strftime('%Y-%m-%d')
         if observation_end is not None:
             observation_end = pd.to_datetime(observation_end, errors='raise')
             url += '&observation_end=' + observation_end.strftime('%Y-%m-%d')
@@ -262,10 +265,12 @@ class Fred(object):
         dates : list
             list of vintage dates
         """
-        url = "%s/series/vintagedates?series_id=%s" % (self.root_url, series_id)
+        url = "%s/series/vintagedates?series_id=%s" % (
+            self.root_url, series_id)
         root = self.__fetch_data(url)
         if root is None:
-            raise ValueError('No vintage date exists for series id: ' + series_id)
+            raise ValueError(
+                'No vintage date exists for series id: ' + series_id)
         dates = []
         for child in root.getchildren():
             dates.append(self._parse(child.text))
@@ -281,7 +286,8 @@ class Fred(object):
         data = {}
 
         num_results_returned = 0  # number of results returned in this HTTP request
-        num_results_total = int(root.get('count'))  # total number of results, this can be larger than number of results returned
+        # total number of results, this can be larger than number of results returned
+        num_results_total = int(root.get('count'))
         for child in root.getchildren():
             num_results_returned += 1
             series_id = child.get('id')
@@ -317,20 +323,25 @@ class Fred(object):
             if order_by in order_by_options:
                 url = url + '&order_by=' + order_by
             else:
-                raise ValueError('%s is not in the valid list of order_by options: %s' % (order_by, str(order_by_options)))
+                raise ValueError('%s is not in the valid list of order_by options: %s' % (
+                    order_by, str(order_by_options)))
 
         if filter is not None:
             if len(filter) == 2:
-                url = url + '&filter_variable=%s&filter_value=%s' % (filter[0], filter[1])
+                url = url + \
+                    '&filter_variable=%s&filter_value=%s' % (
+                        filter[0], filter[1])
             else:
-                raise ValueError('Filter should be a 2 item tuple like (filter_variable, filter_value)')
+                raise ValueError(
+                    'Filter should be a 2 item tuple like (filter_variable, filter_value)')
 
         sort_order_options = ['asc', 'desc']
         if sort_order is not None:
             if sort_order in sort_order_options:
                 url = url + '&sort_order=' + sort_order
             else:
-                raise ValueError('%s is not in the valid list of sort_order options: %s' % (sort_order, str(sort_order_options)))
+                raise ValueError('%s is not in the valid list of sort_order options: %s' % (
+                    sort_order, str(sort_order_options)))
 
         data, num_results_total = self.__do_series_search(url)
         if data is None:
@@ -344,7 +355,8 @@ class Fred(object):
         if max_results_needed > self.max_results_per_request:
             for i in range(1, max_results_needed // self.max_results_per_request + 1):
                 offset = i * self.max_results_per_request
-                next_data, _ = self.__do_series_search(url + '&offset=' + str(offset))
+                next_data, _ = self.__do_series_search(
+                    url + '&offset=' + str(offset))
                 data = data.append(next_data)
         return data.head(max_results_needed)
 
@@ -375,7 +387,8 @@ class Fred(object):
         """
         url = "%s/series/search?search_text=%s&" % (self.root_url,
                                                     quote_plus(text))
-        info = self.__get_search_results(url, limit, order_by, sort_order, filter)
+        info = self.__get_search_results(
+            url, limit, order_by, sort_order, filter)
         return info
 
     def search_by_release(self, release_id, limit=0, order_by=None, sort_order=None, filter=None):
@@ -404,9 +417,11 @@ class Fred(object):
             a DataFrame containing information about the matching Fred series
         """
         url = "%s/release/series?release_id=%d" % (self.root_url, release_id)
-        info = self.__get_search_results(url, limit, order_by, sort_order, filter)
+        info = self.__get_search_results(
+            url, limit, order_by, sort_order, filter)
         if info is None:
-            raise ValueError('No series exists for release id: ' + str(release_id))
+            raise ValueError(
+                'No series exists for release id: ' + str(release_id))
         return info
 
     def search_by_category(self, category_id, limit=0, order_by=None, sort_order=None, filter=None):
@@ -436,7 +451,44 @@ class Fred(object):
         """
         url = "%s/category/series?category_id=%d&" % (self.root_url,
                                                       category_id)
-        info = self.__get_search_results(url, limit, order_by, sort_order, filter)
+        info = self.__get_search_results(
+            url, limit, order_by, sort_order, filter)
         if info is None:
-            raise ValueError('No series exists for category id: ' + str(category_id))
+            raise ValueError(
+                'No series exists for category id: ' + str(category_id))
+        return info
+
+    def search_by_tag(self, tag, limit=0, order_by=None, sort_order=None, filter=None):
+        """
+        Search for series that belongs to a tag or tags. Returns information about matching series in a DataFrame.
+
+        Parameters
+        ----------
+        tag : str
+            text describing the tag name(s) of series that wants to be included as the search filter, e.g., monthly,usa
+        limit : int, optional
+            limit the number of results to this value. If limit is 0, it means fetching all results without limit.
+        order_by : str, optional
+            order the results by a criterion. Valid options are 'search_rank', 'series_id', 'title', 'units', 'frequency',
+            'seasonal_adjustment', 'realtime_start', 'realtime_end', 'last_updated', 'observation_start', 'observation_end',
+            'popularity'
+        sort_order : str, optional
+            sort the results by ascending or descending order. Valid options are 'asc' or 'desc'
+        filter : tuple, optional
+            filters the results. Expects a tuple like (filter_variable, filter_value).
+            Valid filter_variable values are 'frequency', 'units', and 'seasonal_adjustment'
+
+        Returns
+        -------
+        info : DataFrame
+            a DataFrame containing information about the matching Fred series
+        """
+        for i in string.punctuation+" ":
+            tag = ';'.join(tag.split(i))
+        url = "%s/tags/series?tag_names=%s&" % (self.root_url,
+                                                tag)
+        info = self.__get_search_results(
+            url, limit, order_by, sort_order, filter)
+        if info is None:
+            raise ValueError('No series exists for tags: ' + str(tag))
         return info
