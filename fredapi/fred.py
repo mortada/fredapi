@@ -95,7 +95,7 @@ class Fred(object):
         root = self.__fetch_data(url)
         if root is None or not len(root):
             raise ValueError('No info exists for series id: ' + series_id)
-        info = pd.Series(root.getchildren()[0].attrib)
+        info = pd.Series(list(root)[0].attrib)
         return info
 
     def get_series(self, series_id, observation_start=None, observation_end=None, **kwargs):
@@ -132,7 +132,7 @@ class Fred(object):
         if root is None:
             raise ValueError('No data exists for series id: ' + series_id)
         data = {}
-        for child in root.getchildren():
+        for child in root:
             val = child.get('value')
             if val == self.nan_char:
                 val = float('NaN')
@@ -229,7 +229,7 @@ class Fred(object):
             raise ValueError('No data exists for series id: ' + series_id)
         data = {}
         i = 0
-        for child in root.getchildren():
+        for child in root:
             val = child.get('value')
             if val == self.nan_char:
                 val = float('NaN')
@@ -267,7 +267,7 @@ class Fred(object):
         if root is None:
             raise ValueError('No vintage date exists for series id: ' + series_id)
         dates = []
-        for child in root.getchildren():
+        for child in root:
             dates.append(self._parse(child.text))
         return dates
 
@@ -282,7 +282,7 @@ class Fred(object):
 
         num_results_returned = 0  # number of results returned in this HTTP request
         num_results_total = int(root.get('count'))  # total number of results, this can be larger than number of results returned
-        for child in root.getchildren():
+        for child in root:
             num_results_returned += 1
             series_id = child.get('id')
             series_ids.append(series_id)
