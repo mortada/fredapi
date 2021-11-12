@@ -4,7 +4,7 @@
 # fredapi: Python API for FRED (Federal Reserve Economic Data)
 
 `fredapi` is a Python API for the [FRED](http://research.stlouisfed.org/fred2/) data provided by the
-Federal Reserve Bank of St. Louis. `fredapi` provides a wrapper in python to the 
+Federal Reserve Bank of St. Louis. `fredapi` provides a wrapper in python to the
 [FRED web service](http://api.stlouisfed.org/docs/fred/), and also provides several convenient methods
 for parsing and analyzing point-in-time data (i.e. historic data revisions) from [ALFRED](http://research.stlouisfed.org/tips/alfred/)
 
@@ -34,7 +34,7 @@ data = fred.get_series('SP500')
 ## Working with data revisions
 Many economic data series contain frequent revisions. `fredapi` provides several convenient methods for handling data revisions and answering the quesion of what-data-was-known-when.
 
-In [ALFRED](http://research.stlouisfed.org/tips/alfred/) there is the concept of a *vintage* date. Basically every *observation* can have three dates associated with it: *date*, *realtime_start* and *realtime_end*. 
+In [ALFRED](http://research.stlouisfed.org/tips/alfred/) there is the concept of a *vintage* date. Basically every *observation* can have three dates associated with it: *date*, *realtime_start* and *realtime_end*.
 
 - date: the date the value is for
 - realtime_start: the first date the value is valid
