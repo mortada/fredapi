@@ -18,3 +18,9 @@ help:
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
 %: Makefile
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+
+# using ghp-import to fix 404 with github pages
+# see here: https://github.com/sphinx-doc/sphinx/issues/3382#issuecomment-911811441
+gh-deploy:
+	@make html
+	@ghp-import _build/html -p -o -n

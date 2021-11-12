@@ -1,4 +1,4 @@
-.. freadapi documentation master file, created by
+.. fredapi documentation master file, created by
    sphinx-quickstart on Fri Nov 12 15:00:52 2021.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
@@ -9,7 +9,7 @@
    :target: https://opensource.org/licenses/Apache-2.0
 |
 
-Welcome to freadapi's documentation!
+Welcome to fredapi's documentation!
 ====================================
 
 :code:`fredapi` is a Python API for the `FRED <http://research.stlouisfed.org/fred2/>`_ data provided by the
