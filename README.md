@@ -1,4 +1,6 @@
-
+<!-- badges: start -->
+<a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
+<!-- badges: end -->
 # fredapi: Python API for FRED (Federal Reserve Economic Data)
 
 `fredapi` is a Python API for the [FRED](http://research.stlouisfed.org/fred2/) data provided by the
