@@ -12,5 +12,3 @@
 
 * Updated `setup.py` to incorporate package installs for documentation, tests, and development
 * Small refactor to version.py
-
-## Fixed
