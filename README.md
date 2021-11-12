@@ -23,7 +23,7 @@ pip install fredapi
 First you need an API key, you can [apply for one](http://api.stlouisfed.org/api_key.html) for free on the FRED website.
 Once you have your API key, you can set it in one of three ways:
 
-* set it to the evironment variable FRED_API_KEY
+* set it to the environment variable FRED_API_KEY
 * save it to a file and use the 'api_key_file' parameter
 * pass it directly as the 'api_key' parameter
 

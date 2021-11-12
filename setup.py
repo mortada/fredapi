@@ -10,9 +10,10 @@ version_str = temporary_globals["__version__"]
 install_requires = ["pandas"]
 docs_requires = [
     "nbsphinx",
-    "recommonmark",
+    "myst-parser",
     "sphinx",
-    "sphinxcontrib.napoleoniU",
+    "sphinxcontrib.napoleon",
+    "sphinx_rtd_theme",
     "ipython",
 ]
 test_requires = [
