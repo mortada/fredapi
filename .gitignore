@@ -33,6 +33,7 @@ htmlcov/
 .nox/
 .coverage
 .cache
+.pytest_cache
 nosetests.xml
 coverage.xml
 
@@ -61,3 +62,6 @@ Untitled.ipynb
 
 # mac
 .DS_Store
+
+# mypy
+.mypy_cache
