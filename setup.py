@@ -20,7 +20,7 @@ test_requires = [
     "pytest",
 ]
 dev_requires = (
-    ["black", "mypy", "bump2version", "interrogate", "pre-commit"]
+    ["black", "mypy", "bump2version", "interrogate", "pre-commit", "nox"]
     + docs_requires
     + test_requires
 )
