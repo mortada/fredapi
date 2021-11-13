@@ -36,7 +36,7 @@ For examples of how to use :code:`fredapi` please see the links below.
 
    Contribution Guide <references/contributing.md>
    API <references/api>
-   Changelog <references/CHANGELOG.md>
+   .. Changelog <references/CHANGELOG.md>
    License <references/license>
 
 
