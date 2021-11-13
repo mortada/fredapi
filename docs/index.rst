@@ -33,6 +33,7 @@ For examples of how to use :code:`fredapi` please see the links below.
    :maxdepth: 1
    :caption: References
 
+   Contribution Guide <references/contributing.md>
    API <references/api>
    Changelog <references/CHANGELOG.md>
    License <references/license>

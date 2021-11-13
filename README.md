@@ -41,3 +41,7 @@ For information on `fredapi` functionality, such as working with data revisions,
 
 ## More Examples
 - [@mortada](https://github.com/mortada) wrote a [blog post with more examples](http://mortada.net/python-api-for-fred.html) written in an `IPython` notebook
+
+## Contributing
+
+We're always looking for people to help! See the [contribution guide](https://gw-moore.github.io/fredapi/references/contributing.html) for details on how to get started.
