@@ -8,21 +8,29 @@ with open("fredapi/_version.py") as fp:
 version_str = temporary_globals["__version__"]
 
 install_requires = ["pandas"]
-docs_requires = [
-    "nbsphinx",
-    "myst-parser",
-    "sphinx",
-    "sphinxcontrib.napoleon",
-    "sphinx_rtd_theme",
-    "ipython",
-    "interrogate",
-]
-test_requires = ["pytest"]
-dev_requires = (
-    ["black", "mypy", "flake8", "bump2version", "pre-commit", "nox", "isort"]
-    + docs_requires
-    + test_requires
-)
+
+extras = {
+    "lint": [
+        "black",
+        "flake8",
+        "isort",
+        "interrogate",
+        "pre-commit",
+        "mypy",
+    ],
+    "docs": [
+        "nbsphinx",
+        "myst-parser",
+        "sphinx",
+        "sphinxcontrib.napoleon",
+        "sphinx_rtd_theme",
+        "ipython",
+    ],
+    "test": ["pytest"],
+    "dev": ["bump2version", "nox"],
+}
+
+extras["dev"] += extras["lint"] + extras["docs"] + extras["test"]
 
 LONG_DESCRIPTION = open("DESCRIPTION.rst").read()
 
@@ -38,7 +46,7 @@ setup(
     packages=["fredapi"],
     platforms=["Any"],
     install_requires=install_requires,
-    extras_require={"docs": docs_requires, "tests": test_requires, "dev": dev_requires},
+    extras_require=extras,
     classifiers=[
         "Development Status :: 4 - Beta",
         "Environment :: Console",
