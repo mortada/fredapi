@@ -7,6 +7,5 @@ exclude =
     docs/,
     build/,
     dist/,
-    fredapi/tests/,
     .nox,
     .venv,
