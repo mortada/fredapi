@@ -1,10 +1,14 @@
 # fredapi: Python API for FRED (Federal Reserve Economic Data)
 <!-- badges: start -->
+
 [![Pypi version](https://img.shields.io/pypi/v/fredapi.svg)](https://pypi.python.org/pypi/fredapi/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Supported Python Versions](https://img.shields.io/pypi/pyversions/fredapi)](https://pypi.python.org/pypi/fredapi)
+[![PyPI - Downloads - Monthly](https://img.shields.io/pypi/dm/fredapi.svg)](https://pypi.python.org/pypi/fredapi)
+[![Interrogate](docs/_static/interrogate_badge.svg)](https://interrogate.readthedocs.io/en/latest/)
+[![Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 ![GitHub Actions](https://img.shields.io/badge/githubactions-%232671E5.svg?style=flat&logo=githubactions&logoColor=white)
-![Interrogate](docs/_static/interrogate_badge.svg)
-<a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
+
 <!-- badges: end -->
 
 `fredapi` is a Python API for the [FRED](http://research.stlouisfed.org/fred2/) data provided by the
@@ -37,7 +41,7 @@ data = fred.get_series('SP500')
 
 ## Documentation
 
-For information on `fredapi` functionality, such as working with data revisions, [checkout the documentation](https://gw-moore.github.io/fredapi/index.html)
+For more information on `fredapi` functionality, such as working with data revisions, [checkout the documentation](https://gw-moore.github.io/fredapi/index.html)
 
 ## More Examples
 - [@mortada](https://github.com/mortada) wrote a [blog post with more examples](http://mortada.net/python-api-for-fred.html) written in an `IPython` notebook
