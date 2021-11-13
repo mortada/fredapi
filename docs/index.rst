@@ -7,6 +7,7 @@
    :target: https://pypi.org/project/fredapi/
 .. image:: https://img.shields.io/badge/License-Apache_2.0-blue.svg
    :target: https://opensource.org/licenses/Apache-2.0
+
 |
 
 Welcome to fredapi's documentation!
@@ -23,7 +24,7 @@ For examples of how to use :code:`fredapi` please see the links below.
 
 .. toctree::
    :maxdepth: 1
-   :caption: Contents:
+   :caption: Tutorials
 
    Quick Start <example_notebooks/00_quickstart.ipynb>
    Working With Data Revisions <example_notebooks/01_working_with_date_revisions.ipynb>
