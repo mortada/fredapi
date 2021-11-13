@@ -56,6 +56,7 @@ docs/_build/
 
 # jupyter
 .ipynb_checkpoints/
+*.ipynb_checkpoints/
 Untitled.ipynb
 
 # mac
