@@ -26,7 +26,7 @@ extras = {
         "sphinx_rtd_theme",
         "ipython",
     ],
-    "test": ["pytest"],
+    "test": ["pytest", "coverage"],
     "dev": ["bump2version", "nox"],
 }
 
