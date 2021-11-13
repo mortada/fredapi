@@ -250,7 +250,7 @@ class TestFred(unittest.TestCase):
         )
         side_effect = fredapi.fred.HTTPError(url, 400, "", "", sys.stderr)
         self.prepare_urlopen(urlopen, side_effect=side_effect)
-        with self.assertRaises(ValueError) as context:
+        with self.assertRaises(ValueError) as context:  # noqa: F841
             self.fred.get_series("SP500", observation_start="invalid-datetime-str")
         self.assertFalse(urlopen.called)
 
