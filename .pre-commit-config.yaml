@@ -10,10 +10,16 @@ repos:
     rev: 21.10b0
     hooks:
       - id: black
-  - repo: https://github.com/asottile/reorder-python-imports
-    rev: v2.6.0
+  - repo: https://github.com/pycqa/isort
+    rev: 5.8.0
     hooks:
-      - id: reorder-python-imports
+      - id: isort
+        name: isort (python)
+  - repo: https://github.com/pycqa/flake8
+    rev: "4.0.1"
+    hooks:
+      - id: flake8
+        exclude: ^test/|fredapi/tests/|.nox
   - repo: https://github.com/econchick/interrogate
     rev: 1.5.0
     hooks:

@@ -1,11 +1,34 @@
+[tool.black]
+py36 = true
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.nox
+    | \.venv
+    | _build
+    | buck-out
+    | build
+    | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+src_paths = ["fred/"]
+
 [tool.interrogate]
 ignore-init-method = true
 ignore-init-module = true
+ignore-module = true
 ignore-magic = false
 ignore-semiprivate = false
 ignore-private = false
 ignore-property-decorators = false
-ignore-module = false
 ignore-nested-functions = false
 ignore-nested-classes = true
 ignore-setters = false
@@ -18,5 +41,3 @@ quiet = false
 whitelist-regex = []
 color = true
 omit-covered-files = false
-generate-badge = "docs/_static/"
-badge-format = "svg"

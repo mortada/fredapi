@@ -15,12 +15,11 @@ docs_requires = [
     "sphinxcontrib.napoleon",
     "sphinx_rtd_theme",
     "ipython",
+    "interrogate",
 ]
-test_requires = [
-    "pytest",
-]
+test_requires = ["pytest"]
 dev_requires = (
-    ["black", "mypy", "bump2version", "interrogate", "pre-commit", "nox"]
+    ["black", "mypy", "flake8", "bump2version", "pre-commit", "nox", "isort"]
     + docs_requires
     + test_requires
 )

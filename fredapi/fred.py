@@ -3,9 +3,9 @@ import sys
 import xml.etree.ElementTree as ET
 
 if sys.version_info[0] >= 3:
-    import urllib.request as url_request
-    import urllib.parse as url_parse
     import urllib.error as url_error
+    import urllib.parse as url_parse
+    import urllib.request as url_request
 else:
     import urllib2 as url_request
     import urllib as url_parse
