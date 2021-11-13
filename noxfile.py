@@ -24,22 +24,21 @@ def lint(session):
     * Run black formatting
     * Run isort
     * Run flake8
+    * Run interrogate
     """
     session.install(".[lint]")
-    session.run("black", "fredapi")
-    session.run("isort", "fredapi")
-    session.run("flake8", "fredapi")
+    session.run("black", "fredapi", "fredapi/tests")
+    session.run("isort", "fredapi", "fredapi/tests")
+    session.run("flake8", "fredapi", "fredapi/tests")
+    session.run("interrogate", "fredapi", "fredapi/tests")
 
 
 @nox.session
-def lint_tests(session):
-    """Apply linting standards to the test files
-
-    * Run black formatting
-    * Run isort
-    * Run flake8
-    """
-    session.install(".[lint]")
-    session.run("black", "tests")
-    session.run("isort", "tests")
-    session.run("flake8", "tests")
+def test_coverage(session):
+    """Generate test coverage statistics"""
+    session.install(".[test]")
+    session.run(
+        "coverage",
+        "run",
+        "--source" "fredapi.fred" "fredapi/tests/test_fred.py",
+    )
