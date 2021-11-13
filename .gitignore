@@ -30,6 +30,7 @@ pip-delete-this-directory.txt
 # Unit test / coverage reports
 htmlcov/
 .tox/
+.nox/
 .coverage
 .cache
 nosetests.xml
@@ -52,3 +53,10 @@ coverage.xml
 
 # Sphinx documentation
 docs/_build/
+
+# jupyter
+.ipynb_checkpoints/
+Untitled.ipynb
+
+# mac
+.DS_Store
