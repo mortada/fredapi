@@ -1,0 +1,50 @@
+name: Linter
+
+on:
+  pull_request:
+    branches:
+      - master
+      - develop
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install ".[lint]"
+
+      - name: Check black formatting
+        continue-on-error: false
+        run: |
+          python3 -m black --check fredapi/ tests/
+
+      - name: Lint with flake8
+        continue-on-error: true
+        run: |
+          flake8 fredapi/ tests/
+
+      - name: Lint with isort
+        continue-on-error: true
+        run: |
+          isort freadapi/ tests/
+
+      - name: Check docstring coverage
+        continue-on-error: true
+        run: |
+          interrogate freadapi/ tests/
+
+      - name: Running coverage tests
+        continue-on-error: true
+        run: |
+          coverage run --source fredapi.fred fredapi/tests/test_fred.py
