@@ -20,31 +20,31 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install dependencies
-        run: >-
+        run: |
           python -m pip install --upgrade pip
           python -m pip install ".[lint]"
 
       - name: Check black formatting
         continue-on-error: true
-        run: >-
+        run: |
           python3 -m black --check fredapi/ fredapi/tests
 
       - name: Lint with flake8
         continue-on-error: true
-        run: >-
+        run: |
           flake8 fredapi/ fredapi/tests
 
       - name: Lint with isort
         continue-on-error: true
-        run: >-
+        run: |
           isort freadapi/ fredapi/tests
 
       - name: Check docstring coverage
         continue-on-error: true
-        run: >-
+        run: |
           interrogate freadapi/ fredapi/tests
 
       - name: Running coverage tests
         continue-on-error: true
-        run: >-
+        run: |
           coverage run --source fredapi.fred fredapi/tests/test_fred.py
