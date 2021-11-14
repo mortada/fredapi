@@ -7,11 +7,11 @@ with open("fredapi/_version.py") as fp:
     exec(fp.read(), temporary_globals)
 version_str = temporary_globals["__version__"]
 
-install_requires = ["pandas"]
+install_requires = ["pandas>=1.0"]
 
 extras = {
     "lint": [
-        "black",
+        "black==21.9b0",
         "flake8",
         "isort",
         "interrogate",
@@ -26,7 +26,7 @@ extras = {
         "sphinx_rtd_theme",
         "ipython",
     ],
-    "test": ["pytest", "coverage"],
+    "test": ["pytest", "tox", "tox-gh-actions", "coverage"],
     "dev": ["bump2version", "nox"],
 }
 

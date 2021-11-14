@@ -6,7 +6,6 @@ if sys.version_info[0] >= 3:
     unicode = str
 
 import io
-import os
 import unittest
 
 if sys.version_info < (3, 3):
@@ -14,13 +13,10 @@ if sys.version_info < (3, 3):
 else:
     from unittest import mock  # pylint: disable=import-error
 
-import contextlib
-import datetime as dt
 import textwrap
 
 import fredapi
 import fredapi.fred
-import pandas as pd
 
 # Change here if you want to make actual calls to Fred
 # (https://api.stlouisfed.org/fred...)
