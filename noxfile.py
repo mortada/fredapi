@@ -31,14 +31,3 @@ def lint(session):
     session.run("isort", "fredapi", "fredapi/tests")
     session.run("flake8", "fredapi", "fredapi/tests")
     session.run("interrogate", "fredapi", "fredapi/tests")
-
-
-@nox.session
-def test_coverage(session):
-    """Generate test coverage statistics"""
-    session.install(".[test]")
-    session.run(
-        "coverage",
-        "run",
-        "--source" "fredapi.fred" "fredapi/tests/test_fred.py",
-    )
