@@ -21,6 +21,8 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+.venv
+__pycache__
 
 # Installer logs
 pip-log.txt
@@ -29,8 +31,10 @@ pip-delete-this-directory.txt
 # Unit test / coverage reports
 htmlcov/
 .tox/
+.nox/
 .coverage
 .cache
+.pytest_cache
 nosetests.xml
 coverage.xml
 
@@ -52,3 +56,13 @@ coverage.xml
 # Sphinx documentation
 docs/_build/
 
+# jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints/
+Untitled.ipynb
+
+# mac
+.DS_Store
+
+# mypy
+.mypy_cache
