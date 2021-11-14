@@ -5,6 +5,7 @@
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Supported Python Versions](https://img.shields.io/pypi/pyversions/fredapi)](https://pypi.python.org/pypi/fredapi)
 [![PyPI - Downloads - Monthly](https://img.shields.io/pypi/dm/fredapi.svg)](https://pypi.python.org/pypi/fredapi)
+[![codecov](https://codecov.io/gh/gw-moore/fredapi/branch/general-pkg-improvements/graph/badge.svg?token=WNLH3B9NIZ)](https://codecov.io/gh/gw-moore/fredapi)
 [![Interrogate](docs/_static/interrogate_badge.svg)](https://interrogate.readthedocs.io/en/latest/)
 [![Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 ![GitHub Actions](https://img.shields.io/badge/githubactions-%232671E5.svg?style=flat&logo=githubactions&logoColor=white)
