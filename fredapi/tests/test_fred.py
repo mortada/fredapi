@@ -3,17 +3,13 @@ import sys
 if sys.version_info[0] >= 3:
     unicode = str
 
-import os
 import io
 import unittest
 if sys.version_info < (3, 3):
     import mock  # pylint: disable=import-error
 else:
     from unittest import mock  # pylint: disable=import-error
-import datetime as dt
 import textwrap
-import contextlib
-import pandas as pd
 import fredapi
 import fredapi.fred
 
@@ -27,7 +23,7 @@ if not fake_fred_call:
     fred_api_key = fredapi.Fred().api_key
 
 
-class HTTPCall(object):
+class HTTPCall:
     """Encapsulates faked Fred call data."""
 
     root_url = fredapi.Fred.root_url
