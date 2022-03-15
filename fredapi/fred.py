@@ -200,7 +200,7 @@ class Fred:
         data = df[df['realtime_start'] <= as_of_date]
         return data
 
-    def get_series_all_releases(self, series_id):
+    def get_series_all_releases(self, series_id, realtime_start=None, realtime_end=None):
         """
         Get all data for a Fred series id including first releases and all revisions. This returns a DataFrame
         with three columns: 'date', 'realtime_start', and 'value'. For instance, the US GDP for Q4 2013 was first released
@@ -213,6 +213,10 @@ class Fred:
         ----------
         series_id : str
             Fred series id such as 'GDP'
+        realtime_start : str, optional
+            specifies the realtime_start value used in the query, defaults to the earliest possible start date allowed by Fred
+        realtime_end : str, optional
+            specifies the realtime_end value used in the query, defaults to the latest possible end date allowed by Fred
 
         Returns
         -------
@@ -220,10 +224,14 @@ class Fred:
             a DataFrame with columns 'date', 'realtime_start' and 'value' where 'date' is the observation period and 'realtime_start'
             is when the corresponding value (either first release or revision) is reported.
         """
+        if realtime_start is None:
+            realtime_start = self.earliest_realtime_start
+        if realtime_end is None:
+            realtime_end = self.latest_realtime_end
         url = "%s/series/observations?series_id=%s&realtime_start=%s&realtime_end=%s" % (self.root_url,
                                                                                          series_id,
-                                                                                         self.earliest_realtime_start,
-                                                                                         self.latest_realtime_end)
+                                                                                         realtime_start,
+                                                                                         realtime_end)
         root = self.__fetch_data(url)
         if root is None:
             raise ValueError('No data exists for series id: ' + series_id)
