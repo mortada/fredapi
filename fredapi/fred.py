@@ -19,7 +19,7 @@ urlencode = url_parse.urlencode
 HTTPError = url_error.HTTPError
 
 
-class Fred(object):
+class Fred:
     earliest_realtime_start = '1776-07-04'
     latest_realtime_end = '9999-12-31'
     nan_char = '.'
