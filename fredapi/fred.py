@@ -200,7 +200,7 @@ class Fred:
         data = df[df['realtime_start'] <= as_of_date]
         return data
 
-    def get_series_all_releases(self, series_id, realtime_start=None, realtime_end=None):
+    def get_series_all_releases(self, series_id, realtime_start=None, realtime_end=None, observation_start=None, observation_end=None):
         """
         Get all data for a Fred series id including first releases and all revisions. This returns a DataFrame
         with three columns: 'date', 'realtime_start', and 'value'. For instance, the US GDP for Q4 2013 was first released
@@ -217,7 +217,10 @@ class Fred:
             specifies the realtime_start value used in the query, defaults to the earliest possible start date allowed by Fred
         realtime_end : str, optional
             specifies the realtime_end value used in the query, defaults to the latest possible end date allowed by Fred
-
+        observation_start : datetime or datetime-like str such as '7/1/2014', optional
+            earliest observation date
+        observation_end : datetime or datetime-like str such as '7/1/2014', optional
+            latest observation date
         Returns
         -------
         data : DataFrame
@@ -228,10 +231,22 @@ class Fred:
             realtime_start = self.earliest_realtime_start
         if realtime_end is None:
             realtime_end = self.latest_realtime_end
-        url = "%s/series/observations?series_id=%s&realtime_start=%s&realtime_end=%s" % (self.root_url,
-                                                                                         series_id,
-                                                                                         realtime_start,
-                                                                                         realtime_end)
+        if observation_start is None:
+            observation_start = self.earliest_realtime_start
+        if observation_end is None:
+            observation_end = self.latest_realtime_end
+
+        url = "%s/series/observations?series_id=%s" \
+              "&realtime_start=%s" \
+              "&realtime_end=%s" \
+              "&observation_start=%s" \
+              "&observation_end=%s" % (self.root_url,
+                                       series_id,
+                                       realtime_start,
+                                       realtime_end,
+                                       observation_start,
+                                       observation_end
+                                       )
         root = self.__fetch_data(url)
         if root is None:
             raise ValueError('No data exists for series id: ' + series_id)
