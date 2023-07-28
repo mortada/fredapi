@@ -17,6 +17,9 @@ urlopen = url_request.urlopen
 quote_plus = url_parse.quote_plus
 urlencode = url_parse.urlencode
 HTTPError = url_error.HTTPError
+proxy_handler = url_request.ProxyHandler
+build_opener = url_request.build_opener
+install_opener = url_request.install_opener
 
 
 class Fred:
@@ -28,7 +31,8 @@ class Fred:
 
     def __init__(self,
                  api_key=None,
-                 api_key_file=None):
+                 api_key_file=None,
+                 proxies=None):
         """
         Initialize the Fred class that provides useful functions to query the Fred dataset. You need to specify a valid
         API key in one of 3 ways: pass the string via api_key, or set api_key_file to a file with the api key in the
@@ -54,6 +58,11 @@ class Fred:
                     environment variable 'FRED_API_KEY' to the value of your
                     api key. You can sign up for a free api key on the Fred
                     website at http://research.stlouisfed.org/fred2/"""))
+
+        self.proxies = proxies
+        if self.proxies is not None:
+            opener = build_opener(proxy_handler(self.proxies))
+            install_opener(opener)
 
     def __fetch_data(self, url):
         """
