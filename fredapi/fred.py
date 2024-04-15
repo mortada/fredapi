@@ -18,7 +18,6 @@ quote_plus = url_parse.quote_plus
 urlencode = url_parse.urlencode
 HTTPError = url_error.HTTPError
 
-
 class Fred:
     earliest_realtime_start = '1776-07-04'
     latest_realtime_end = '9999-12-31'
@@ -28,12 +27,22 @@ class Fred:
 
     def __init__(self,
                  api_key=None,
-                 api_key_file=None):
+                 api_key_file=None,
+                 proxies=None):
         """
         Initialize the Fred class that provides useful functions to query the Fred dataset. You need to specify a valid
         API key in one of 3 ways: pass the string via api_key, or set api_key_file to a file with the api key in the
-        first line, or set the environment variable 'FRED_API_KEY' to the value of your api key. You can sign up for a
-        free api key on the Fred website at http://research.stlouisfed.org/fred2/
+        first line, or set the environment variable 'FRED_API_KEY' to the value of your api key.
+
+        Parameters
+        ----------
+        api_key : str
+            API key. A free api key can be obtained on the Fred website at http://research.stlouisfed.org/fred2/.
+        api_key_file : str
+            Path to a file containing the api key.
+        proxies : dict
+            Proxies specifications: a dictionary mapping protocol names (e.g. 'http', 'https') to proxy URLs. If not provided, environment variables 'HTTP_PROXY', 'HTTPS_PROXY' are used.
+
         """
         self.api_key = None
         if api_key is not None:
@@ -54,6 +63,17 @@ class Fred:
                     environment variable 'FRED_API_KEY' to the value of your
                     api key. You can sign up for a free api key on the Fred
                     website at http://research.stlouisfed.org/fred2/"""))
+
+        if not proxies:
+            http_proxy, https_proxy = os.getenv('HTTP_PROXY'), os.getenv('HTTPS_PROXY')
+            if http_proxy or https_proxy:
+                proxies = {'http': http_proxy, 'https': https_proxy}
+
+        self.proxies = proxies
+
+        if self.proxies:
+            opener = url_request.build_opener(url_request.ProxyHandler(self.proxies))
+            url_request.install_opener(opener)
 
     def __fetch_data(self, url):
         """

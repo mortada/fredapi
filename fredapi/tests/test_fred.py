@@ -138,7 +138,7 @@ class TestFred(unittest.TestCase):
         run as part of automated continuous integration (e.g. travis-ci.org).
 
         """
-        self.fred = fredapi.Fred(api_key=fred_api_key)
+        self.fred = fredapi.Fred(api_key=fred_api_key, proxies=None)
         self.fake_fred_call = fake_fred_call
         self.__original_urlopen = fredapi.fred.urlopen
 
