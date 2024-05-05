@@ -1,6 +1,7 @@
 
 import os
 import sys
+import datetime
 import xml.etree.ElementTree as ET
 if sys.version_info[0] >= 3:
     import urllib.request as url_request
@@ -215,8 +216,9 @@ class Fred:
         data : Series
             a Series where each index is the observation date and the value is the data for the Fred series
         """
+        # do not request data past as_of_date
+        df = self.get_series_all_releases(series_id, realtime_end = as_of_date)
         as_of_date = pd.to_datetime(as_of_date)
-        df = self.get_series_all_releases(series_id)
         data = df[df['realtime_start'] <= as_of_date]
         return data
 
@@ -248,32 +250,61 @@ class Fred:
             realtime_start = self.earliest_realtime_start
         if realtime_end is None:
             realtime_end = self.latest_realtime_end
-        url = "%s/series/observations?series_id=%s&realtime_start=%s&realtime_end=%s" % (self.root_url,
-                                                                                         series_id,
-                                                                                         realtime_start,
-                                                                                         realtime_end)
-        root = self.__fetch_data(url)
-        if root is None:
-            raise ValueError('No data exists for series id: ' + series_id)
-        data = {}
-        i = 0
-        for child in root:
-            val = child.get('value')
-            if val == self.nan_char:
-                val = float('NaN')
-            else:
-                val = float(val)
-            realtime_start = self._parse(child.get('realtime_start'))
-            # realtime_end = self._parse(child.get('realtime_end'))
-            date = self._parse(child.get('date'))
+        # prepare datetime start/end dates. Using datetime package since pd.to_datetime chokes on '9999-12-31' date
+        realtime_start_dt = datetime.datetime.strptime(realtime_start,'%Y-%m-%d')
+        realtime_end_dt = datetime.datetime.strptime(realtime_end,'%Y-%m-%d')
+        # FRED API appears to have a 2000 vintage limit now, need to check if more vintages available first.
+        # Also, cut off vintages outside the requested interval
+        _vintages = [_v for _v in sorted(self.get_series_vintage_dates(series_id)) if _v >= realtime_start_dt and _v <= realtime_end_dt]
+        # define max chunk length allowed on Fred API:
+        max_chunk_length = 2000
+        # go in chunks not exceeding max_chunk_length vintages
+        _vintages_chunk_start = 0
+        _vintages_chunk_end = min(len(_vintages),max_chunk_length) - 1
+        # init final dataframe:
+        df = pd.DataFrame()
+        # go in chunks of <= max_chunk_length
+        _done = False
+        while not _done:
+            _vintages_chunk_start_str = _vintages[_vintages_chunk_start].strftime('%Y-%m-%d')
+            _vintages_chunk_end_str = _vintages[_vintages_chunk_end].strftime('%Y-%m-%d')
+            # go until no point of continuing
+            url = "%s/series/observations?series_id=%s&realtime_start=%s&realtime_end=%s" % (self.root_url,
+                                                                                            series_id,
+                                                                                            _vintages_chunk_start_str,
+                                                                                            _vintages_chunk_end_str)
+            root = self.__fetch_data(url)
+            if root is None:
+                raise ValueError('No data exists for series id: ' + series_id)
+            data = {}
+            i = 0
+            for child in root:
+                val = child.get('value')
+                if val == self.nan_char:
+                    val = float('NaN')
+                else:
+                    val = float(val)
+                realtime_start = self._parse(child.get('realtime_start'))
+                # realtime_end = self._parse(child.get('realtime_end'))
+                date = self._parse(child.get('date'))
 
-            data[i] = {'realtime_start': realtime_start,
-                       # 'realtime_end': realtime_end,
-                       'date': date,
-                       'value': val}
-            i += 1
-        data = pd.DataFrame(data).T
-        return data
+                data[i] = {'realtime_start': realtime_start,
+                        # 'realtime_end': realtime_end,
+                        'date': date,
+                        'value': val}
+                i += 1
+            data = pd.DataFrame(data).T
+            # append the combined dataframe
+            df = pd.concat([df , data])
+            # prepare for the next chunk
+            _vintages_chunk_start = _vintages_chunk_end + 1
+            # check if no more chunks
+            if _vintages_chunk_start > len(_vintages)-1:
+                _done = True
+            else:
+                _vintages_chunk_end = min(len(_vintages)-1, _vintages_chunk_end + max_chunk_length) 
+
+        return df
 
     def get_series_vintage_dates(self, series_id):
         """
