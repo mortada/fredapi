@@ -12,6 +12,7 @@ else:
     import urllib2 as url_error
 
 import pandas as pd
+from datetime import date, timedelta
 
 urlopen = url_request.urlopen
 quote_plus = url_parse.quote_plus
@@ -298,6 +299,69 @@ class Fred:
         for child in root:
             dates.append(self._parse(child.text))
         return dates
+
+    def get_series_release_publications(self, series_id):
+        """
+        Get details of the release publication the series data is sourced from.
+
+        Parameters
+        ----------
+        series_id : str
+            Fred series id such as 'CPIAUCSL'
+
+        Returns
+        -------
+        {
+            "id": 21,
+            "realtime_start": "2013-08-14",
+            "realtime_end": "2013-08-14",
+            "name": "H.6 Money Stock Measures",
+            "press_release": true,
+            "link": "http://www.federalreserve.gov/releases/h6/"
+        }
+        """
+        url = "%s/series/release?series_id=%s" % (self.root_url, series_id)
+        root = self.__fetch_data(url)
+        if root is None:
+            raise ValueError('No release found for series id: ' + series_id)
+        for child in root:
+            return {
+                'id': child.get('id'),
+                'name': child.get('name'),
+                'realtime_start': self._parse(child.get('realtime_start')),
+                'realtime_end': self._parse(child.get('realtime_end')),
+                'press_release': child.get('press_release') == 'true',
+                'link': child.get('link'),
+            }
+
+    def get_series_next_release_date(self, series_id, realtime_start=None):
+        """
+        Get the next scheduled release date for a series.
+
+        Parameters
+        ----------
+        series_id : str
+            Fred series id such as 'CPIAUCSL'
+        realtime_start : str, optional
+            specifies the realtime_start value used in the query, defaults to tomorrow
+
+        Returns
+        -------
+        datetime
+            next release date
+        """
+        if realtime_start is None:
+            realtime_start = (date.today() + timedelta(days=1)).strftime('%Y-%m-%d')
+        release_id = self.get_series_release_publications(series_id)['id']
+        if release_id is None:
+            raise ValueError('No release id found for series id: ' + series_id)
+        url = "%s/release/dates?release_id=%s&realtime_start=%s&include_release_dates_with_no_data=true&limit=1" % (
+            self.root_url, release_id, realtime_start)
+        root = self.__fetch_data(url)
+        if root is None:
+            raise ValueError('No release dates found for series id: ' + series_id)
+        for release_date in root:
+            return self._parse(release_date.text)
 
     def __do_series_search(self, url):
         """

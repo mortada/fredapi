@@ -3,6 +3,7 @@ import sys
 if sys.version_info[0] >= 3:
     unicode = str
 
+from datetime import datetime
 import io
 import unittest
 if sys.version_info < (3, 3):
@@ -10,6 +11,7 @@ if sys.version_info < (3, 3):
 else:
     from unittest import mock  # pylint: disable=import-error
 import textwrap
+import pandas as pd
 import fredapi
 import fredapi.fred
 
@@ -45,24 +47,24 @@ class HTTPCall:
 
 
 sp500_obs_call = HTTPCall('series/observations?series_id=SP500&{}&{}'.
-                          format('observation_start=2014-09-02',
-                                 'observation_end=2014-09-05'),
+                          format('observation_start=2024-09-02',
+                                 'observation_end=2024-09-05'),
                           response=textwrap.dedent('''\
 <?xml version="1.0" encoding="utf-8" ?>
-<observations realtime_start="2015-06-28" realtime_end="2015-06-28"
-              observation_start="2014-09-02"
-              observation_end="2014-09-05" units="lin"
+<observations realtime_start="2025-04-03" realtime_end="2025-04-03"
+              observation_start="2024-09-02"
+              observation_end="2024-09-05" units="lin"
               output_type="1" file_type="xml"
               order_by="observation_date" sort_order="asc"
               count="4" offset="0" limit="100000">
-  <observation realtime_start="2015-06-28" realtime_end="2015-06-28"
-               date="2014-09-02" value="2002.28"/>
-  <observation realtime_start="2015-06-28" realtime_end="2015-06-28"
-               date="2014-09-03" value="2000.72"/>
-  <observation realtime_start="2015-06-28" realtime_end="2015-06-28"
-               date="2014-09-04" value="1997.65"/>
-  <observation realtime_start="2015-06-28" realtime_end="2015-06-28"
-               date="2014-09-05" value="2007.71"/>
+  <observation realtime_start="2025-04-03" realtime_end="2025-04-03"
+              date="2024-09-02" value="."/>
+  <observation realtime_start="2025-04-03" realtime_end="2025-04-03"
+              date="2024-09-03" value="5528.93"/>
+  <observation realtime_start="2025-04-03" realtime_end="2025-04-03"
+              date="2024-09-04" value="5520.07"/>
+  <observation realtime_start="2025-04-03" realtime_end="2025-04-03"
+              date="2024-09-05" value="5503.41"/>
 </observations>'''))
 search_call = HTTPCall('release/series?release_id=175&' +
                        'order_by=series_id&sort_order=asc',
@@ -112,7 +114,23 @@ payems_info_call = HTTPCall('series?series_id=PAYEMS',
           last_updated="2015-06-05 08:47:20-05"
           popularity="86" notes="..." />
 </seriess>'''))
-
+series_release_pce_call = HTTPCall('series/release?series_id=PCE',
+                                        response=textwrap.dedent('''\
+<?xml version="1.0" encoding="utf-8" ?>
+<releases realtime_start="2025-04-03" realtime_end="2025-04-03">
+  <release id="54" realtime_start="2025-04-03" realtime_end="2025-04-03" name="Personal Income and Outlays" press_release="true" link="https://www.bea.gov/data/income-saving/personal-income"/>
+</releases>'''))
+release_dates_pce_call = HTTPCall('release/dates?release_id=54&realtime_start=2025-04-04&include_release_dates_with_no_data=true&limit=1',
+                                        response=textwrap.dedent('''\
+<?xml version="1.0" encoding="utf-8" ?>
+<release_dates realtime_start="2025-04-04" realtime_end="9999-12-31" order_by="release_date" sort_order="asc" count="9" offset="0" limit="1">
+  <release_date release_id="54">2025-04-30</release_date>
+</release_dates>'''))
+release_dates_no_release_call = HTTPCall('release/dates?release_id=54&realtime_start=2025-04-04&include_release_dates_with_no_data=true&limit=1',
+                                        response=textwrap.dedent('''\
+<?xml version="1.0" encoding="utf-8" ?>
+<release_dates realtime_start="2099-04-04" realtime_end="9999-12-31" order_by="release_date" sort_order="asc" count="0" offset="0" limit="1">
+</release_dates>\n\n\n\n'''))
 
 class TestFred(unittest.TestCase):
 
@@ -161,10 +179,11 @@ class TestFred(unittest.TestCase):
         """Test retrieval of series for SP500."""
         self.prepare_urlopen(urlopen,
                              http_response=sp500_obs_call.response)
-        serie = self.fred.get_series('SP500', observation_start='9/2/2014',
-                                     observation_end='9/5/2014')
+        serie = self.fred.get_series('SP500', observation_start='9/2/2024',
+                                     observation_end='9/5/2024')
         urlopen.assert_called_with(sp500_obs_call.url)
-        self.assertEqual(serie.loc['9/2/2014'], 2002.28)
+        self.assertTrue(pd.isna(serie.loc['9/2/2024']))
+        self.assertEqual(serie.loc['9/3/2024'], 5528.93)
         self.assertEqual(len(serie), 4)
 
     @mock.patch('fredapi.fred.urlopen')
@@ -248,6 +267,36 @@ class TestFred(unittest.TestCase):
         for aline, eline in zip(actual.split('\n'), expected.split('\n')):
             self.assertEqual(aline.strip(), eline.strip())
 
+    @mock.patch('fredapi.fred.urlopen')
+    def test_get_series_release_publication(self, urlopen):
+        """Test retrieval of release publication details for a series."""
+        self.prepare_urlopen(urlopen, http_response=series_release_pce_call.response)
+        pub_info = self.fred.get_series_release_publications('PCE')
+        urlopen.assert_called_with(series_release_pce_call.url)
+        self.assertEqual(pub_info['id'], '54')
+        self.assertEqual(pub_info['name'], 'Personal Income and Outlays')
+        self.assertEqual(pub_info['press_release'], True)
+        self.assertEqual(pub_info['link'], 'https://www.bea.gov/data/income-saving/personal-income')
+        
+    @mock.patch('fredapi.fred.urlopen')
+    def test_get_series_next_release_date_no_release(self, urlopen):
+        """Test retrieval of next release date for a series with no release."""
+        responses = [release_dates_no_release_call.response, series_release_pce_call.response]
+        self.prepare_urlopen(urlopen, side_effect=lambda: responses.pop())
+        next_release_date = self.fred.get_series_next_release_date('PCE', realtime_start='2099-04-04')
+        self.assertIsNone(next_release_date)
+
+    @mock.patch('fredapi.fred.urlopen')
+    def test_get_series_next_release_date(self, urlopen):
+        """Test retrieval of next release date for a series."""
+        responses = [release_dates_pce_call.response, series_release_pce_call.response]
+        self.prepare_urlopen(urlopen, side_effect=lambda: responses.pop())
+        next_release_date = self.fred.get_series_next_release_date('PCE', realtime_start='2025-04-04')
+        urlopen.assert_has_calls([
+            mock.call(series_release_pce_call.url),
+            mock.call(release_dates_pce_call.url)
+        ], any_order=True)
+        self.assertEqual(next_release_date, datetime.fromisoformat('2025-04-30'))
 
 if __name__ == '__main__':
     unittest.main()
