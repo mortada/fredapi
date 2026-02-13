@@ -12,6 +12,7 @@ else:
     import urllib2 as url_error
 
 import pandas as pd
+from pandas._libs.tslibs import OutOfBoundsDatetime
 
 urlopen = url_request.urlopen
 quote_plus = url_parse.quote_plus
@@ -92,9 +93,13 @@ class Fred:
         """
         helper function for parsing FRED date string into datetime
         """
-        rv = pd.to_datetime(date_str, format=format)
-        if hasattr(rv, 'to_pydatetime'):
-            rv = rv.to_pydatetime()
+        try:
+            rv = pd.to_datetime(date_str, format=format, errors='raise')
+            if hasattr(rv, 'to_pydatetime'):
+                rv = rv.to_pydatetime()
+        except (ValueError, OutOfBoundsDatetime):
+            # Handle out-of-bounds or invalid dates
+            rv = None  # or set a default value
         return rv
 
     def get_series_info(self, series_id):
@@ -326,6 +331,7 @@ class Fred:
             # parse datetime columns
             for field in ["realtime_start", "realtime_end", "observation_start", "observation_end", "last_updated"]:
                 data[field] = data[field].apply(self._parse, format=None)
+                data[field] = data[field].replace({pd.NaT: None})  # Replace NaT (Not a Time) with None
             # set index name
             data.index.name = 'series id'
         else:
